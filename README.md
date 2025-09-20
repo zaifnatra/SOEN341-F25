@@ -6,7 +6,7 @@ This project is a Campus Events & Ticketing Web Application which allows student
 
 ## **Objective**
 
-Nicholas Nguyen
+
 
 ## **Team Members**
 
@@ -17,6 +17,7 @@ Nicholas Nguyen
 | Sia Shah     | 40275251   | ShahSia     |
 | Huzaifa F.   | 40272738   | zaifnatra   |
 | Selma Bédoui | 40315053   | selmabeds   |
+| Nicholas Nguyen | 40317237  | Nicoco-cyber   |
 
 ## **Languages & Techniques**
 
