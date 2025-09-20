@@ -6,5 +6,6 @@ Nicholas Nguyen
 |--------------|------------|---------------|
 | Madison Luu  | 40282381   | maddie-luu    |
 | Mico Losloso | 40314038   | MicoLosloso   |
+| Sia Shah     | 40275251   | ShahSia       |
 
 ## **Languages and Techniques**
