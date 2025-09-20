@@ -11,3 +11,4 @@ Nicholas Nguyen
 | Mico Losloso | 40314038   | MicoLosloso   |
 | Sia Shah     | 40275251   | ShahSia       |
 | Huzaifa F.   | 40272738   | zaifnatra     |
+| Selma Bédoui | 40315053   | selmabeds     |
