@@ -18,7 +18,7 @@ Nicholas Nguyen
 | Huzaifa F.   | 40272738   | zaifnatra   |
 | Selma Bédoui | 40315053   | selmabeds   |
 
-## \*\*Languages & Techniques
+## **Languages & Techniques**
 
 - HTML
 - CSS
