@@ -6,7 +6,7 @@ This project is a Campus Events & Ticketing Web Application which allows student
 
 ## **Objective**
 
-
+The objective of this project is to apply web development skills alongside modern software development practices (documentation, version control review, testing, CI/CD, agile methodology) to develop a web application that aims to promote student life on campus. 
 
 ## **Team Members**
 
