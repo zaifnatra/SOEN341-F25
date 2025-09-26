@@ -1,0 +1,24 @@
+{
+  "name": "soen341-f25",
+  "version": "1.0.0",
+  "description": "This project is a Campus Events & Ticketing Web Application which allows students to discover, organize, and attend events on campus. The system supports three main users: Students, Organizers, and Administrators. Students can find and attend events of their choosing by saving favorites and claiming tickets with QR-based check-in. In addition, organizers can also create events and track analytics, including participation rates. Finally, administrators provide a platform oversight to ensure smooth operation of events. Together, these features streamline event management and boost student involvement on campus.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zaifnatra/SOEN341-F25.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/zaifnatra/SOEN341-F25/issues"
+  },
+  "homepage": "https://github.com/zaifnatra/SOEN341-F25#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
