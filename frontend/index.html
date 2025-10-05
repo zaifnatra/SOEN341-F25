@@ -1,12 +1,40 @@
 <!DOCTYPE html>
-    <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>My First HTML Page</title>
-        </head>
-        <body>
-            <h1>Hello, World!</h1>
-            <p>This is a paragraph in my HTML file.</p>
-        </body>
-    </html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My First HTML Page</title>
+    <!-- Link to external CSS file, dont need /frontend path cause of the staticroot in js-->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
+
+
+    <div class="navbar">
+        <a href="#">HOME</a>
+        <a href="#">ACCOUNT</a>
+        <a href="#">EVENTS</a>
+        <a href="#">DASHBOARD</a>
+        <a href="#">HELP</a>
+    </div>
+
+
+    <div class="search-box">
+        <input type="text" placeholder="Search through all our campus events">
+    </div>
+
+
+    <div class="welcome-box">
+        Welcome to Concordia University's Campus Events webpage...
+    </div>
+
+    <!-- Sign in button uses the same class as signout cuz of positioning -->
+    <div class="signout">
+        SIGN IN
+    </div>
+</body>
+
+</html>

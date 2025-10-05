@@ -1,0 +1,91 @@
+body {
+      margin: 0;
+      font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+      background-color: #f8f8f8;
+      color: #083d8c;
+    }
+
+    
+    .title-bar {
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      border-bottom: 2px solid #083d8c;
+      padding: 25px
+    }
+
+    
+    .navbar {
+      display: flex;
+      justify-content: center;
+      gap: 45px;
+      padding: 15px;
+      background-color: #f8f8f8;
+      font-weight: bold;
+    }
+
+    .navbar a {
+      text-decoration: none;
+      color: #083d8c;
+      transition: 0.2s;
+    }
+
+    .navbar a:hover {
+      color: #0056b3;
+    }
+
+    
+    .search-box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 30px 0;
+    }
+
+    .search-box input {
+      width: 50%;
+      padding: 10px;
+      border: 2px solid #ccc;
+      border-radius: 11px;
+      font-size: 16px;
+      outline: none;
+      color: #083d8c;
+    }
+
+    .search-box input::placeholder {
+      color: #a0a0a0;
+    }
+
+    .search-box .icon {
+      position: relative;
+      right: 60px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    
+    .welcome-box {
+      text-align: center;
+      font-size: 18px;
+      font-weight: normal;
+      color: #083d8c;
+      padding: 120px;
+      background: #f1f1f1;
+      border-radius: 20px;
+      width: 60%;
+      margin: auto;
+    }
+
+    
+    .signout {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      color: #083d8c;
+    }
