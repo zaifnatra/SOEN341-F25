@@ -89,3 +89,113 @@ body {
       font-weight: bold;
       color: #083d8c;
     }
+
+
+#logHeader {
+    font-size: 32px;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #083d8c;
+    font-weight: bold;
+    letter-spacing: 1px;
+    border-radius: 12px;
+    padding: 12px 0;
+}
+
+#login {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+#login input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #083d8c;
+    border-radius: 11px;
+    font-size: 16px;
+    outline: none;
+    color: #083d8c;
+    background: #fff;
+    transition: border-color 0.2s;
+}
+
+#login input:focus {
+    border-color: #083d8c;
+}
+
+#btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #083d8c;
+    color: white;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+#btn:hover {
+    background-color: #0056b3;
+}
+
+#reg-link {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 14px;
+}
+
+#reg-link a {
+    color: #083d8c;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+#reg-link a:hover {
+    text-decoration: underline;
+}
+
+#role-select {
+    width: 100%;
+    margin-bottom: 18px;
+    padding: 12px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Align label to the left */
+}
+
+#role-select label {
+    font-weight: bold;
+    color: #083d8c;
+    font-size: 16px;
+    margin-bottom: 6px;
+    margin-left: 2px;
+    text-align: left;
+}
+
+#role-select .role-options {
+    display: flex;
+    gap: 28px;
+    justify-content: center; /* Center the checkboxes horizontally */
+    width: 100%;
+}
+
+#role-select .role-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: normal;
+    color: #083d8c;
+    font-size: 15px;
+}
+
+#role-select input[type="checkbox"] {
+    accent-color: #a5dfe7;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
