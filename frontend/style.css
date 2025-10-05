@@ -185,23 +185,7 @@ body {
     text-align: left;
 }
 
-#role-select .role-options {
-    display: flex;
-    gap: 28px;
-    justify-content: center; 
-    width: 100%;
-}
-
-#role-select .role-checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-weight: normal;
-    color: #083d8c;
-    font-size: 15px;
-}
-
-#role-select input[type="checkbox"] {
+#role-select input[type="radio"] {
     accent-color: #083d8c;
     width: 16px;
     height: 16px;
