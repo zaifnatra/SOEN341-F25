@@ -120,6 +120,10 @@ body {
     color: #083d8c;
     background: #fff;
     transition: border-color 0.2s;
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    display: block;
 }
 
 #login input:focus {
@@ -137,6 +141,10 @@ body {
     cursor: pointer;
     font-weight: bold;
     transition: background-color 0.3s ease;
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    display: block;
 }
 
 #btn:hover {
