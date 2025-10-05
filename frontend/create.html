@@ -23,41 +23,39 @@
 
 
     <div class="welcome-box">
-       <form action="/createAccount" method="post">
-        <h2 id ="logHeader">Create Account</h2>
-        <div id="login">
-            <div id="role-select" style="width:100%; margin-bottom:18px;">
-    <label style="font-weight:bold; color:#083d8c;">Select role:</label>
-    <div style="display:flex; gap:20px; margin-top:8px;">
-        <label style="display:flex; align-items:center; gap:5px;">
-            <input type="radio" name="role" value="student" required>
-            Student
-        </label>
-        <label style="display:flex; align-items:center; gap:5px;">
-            <input type="radio" name="role" value="organizer">
-            Organizer
-        </label>
-        <label style="display:flex; align-items:center; gap:5px;">
-            <input type="radio" name="role" value="administrator">
-            Administrator
-        </label>
-    </div>
-</div>
-            <input type = "email" placeholder="Email" name="email" required>
-            <input type="text" placeholder="Username" name="username">
-            <input type="password" placeholder="Password" name="password">
-        
-        </div>
-   
-    
-        <button type="submit" id="btn">Create Account</button>
+        <form action="/createAccount" method="post">
+            <h2 id="logHeader">Create Account</h2>
+            <div id="login">
+                <div id="role-select">
+                    <label>Select role:</label>
+                    <div class="role-options">
+                        <label class="role-radio-label">
+                            <input type="radio" name="role" value="student" required>
+                            Student
+                        </label>
+                        <label class="role-radio-label">
+                            <input type="radio" name="role" value="organizer">
+                            Organizer
+                        </label>
+                        <label class="role-radio-label">
+                            <input type="radio" name="role" value="administrator">
+                            Administrator
+                        </label>
+                    </div>
+                </div>
+                <input type="email" placeholder="Email" name="email" required>
+                <input type="text" placeholder="Username" name="username">
+                <input type="password" placeholder="Password" name="password">
+            </div>
 
-        <div id = "reg-link">
-            <p>Already have an account?
-            <a href="signin.html">Login</a></p>
-        </div>
-       </form>
+            <button type="submit" id="btn">Create Account</button>
 
+            <div id="reg-link">
+                <p>Already have an account?
+                    <a href="signin.html">Login</a>
+                </p>
+            </div>
+        </form>
     </div>
 
     <!-- Sign in button uses the same class as signout cuz of positioning -->
