@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My First HTML Page</title>
+    <!-- Link to external CSS file, dont need /frontend path cause of the staticroot in js-->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
+
+
+    <div class="navbar">
+        <a href="#">HOME</a>
+        <a href="#">ACCOUNT</a>
+        <a href="#">EVENTS</a>
+        <a href="#">DASHBOARD</a>
+        <a href="#">HELP</a>
+    </div>
+
+
+
+    <div class="welcome-box">
+        
+    <form action="/login" method="post">
+        <h2 id ="logHeader">Login</h2>
+
+        <div id="role-select" style="width:100%; margin-bottom:18px;">
+            <label style="font-weight:bold; color:#083d8c;">Select role:</label>
+            <div style="display:flex; gap:20px; margin-top:8px;">
+                <label style="display:flex; align-items:center; gap:5px;">
+                    <input type="radio" name="role" value="student" required>
+                    Student
+                </label>
+                <label style="display:flex; align-items:center; gap:5px;">
+                    <input type="radio" name="role" value="organizer">
+                    Organizer
+                </label>
+                <label style="display:flex; align-items:center; gap:5px;">
+                    <input type="radio" name="role" value="administrator">
+                    Administrator
+                </label>
+            </div>
+        </div>
+        <div id="login">
+            <input type="text" placeholder="Username" name="username">
+            <input type="password" placeholder="Password" name="password">
+           
+        </div>
+   
+    
+        <button type="submit" id="btn">Login</button>
+
+        <div id = "reg-link">
+            <p>Don't have an account?
+            <a href="create.html">Create Account</a></p>
+        </div>
+        </form>
+        </div>
+    
+
+    <!-- Sign in button uses the same class as signout cuz of positioning -->
+    <div class="signout">
+        SIGN IN
+    </div>
+</body>
+
+</html>
