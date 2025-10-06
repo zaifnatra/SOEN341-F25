@@ -191,3 +191,116 @@ body {
     height: 16px;
     cursor: pointer;
 }
+
+/* added css code for account.html page*/
+.profile-box {
+  background: #f1f1f1;
+  border-radius: 15px;
+  padding: 40px;
+  width: 250px;
+  text-align: center;
+  margin: 40px;
+  float: left;
+}
+
+.profile-box h2 {
+  margin-bottom: 20px;
+}
+
+.profile-icon {
+  font-size: 80px;
+  margin: 20px 0;
+}
+
+.options {
+  margin-top: 200px;     
+  margin-left: 130px;     
+  display: flex;
+  gap: 100px;            
+  flex-wrap: wrap;
+  
+}
+
+.option {
+  text-align: center;
+  width: 150px;
+}
+
+
+.option img {
+  width: 100px;   
+  height: auto;   
+}
+
+/* css for create-event.html page */
+    .form-container {
+      width: 60%;
+      margin: 50px auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      background: #f1f1f1;
+      border-radius: 8px;
+      font-size: 15px;
+      color: #083d8c;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 20px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    /* Buttons */
+    .button-row {
+      display: flex;
+      gap: 20px;
+      margin-top: 15px;
+    }
+
+    .create-btn {
+      flex: 1;
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .create-btn:hover {
+      background: #218838;
+    }
+
+    .save-btn {
+      flex: 1;
+      background: #5bc0de;
+      color: #083d8c;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .save-btn:hover {
+      background: #31b0d5;
+      color: white;
+    }
+
+
+
