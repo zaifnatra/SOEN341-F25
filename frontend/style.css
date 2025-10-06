@@ -302,5 +302,18 @@ body {
       color: white;
     }
 
+/* added css code for help.html page*/
+.help-box {
+  background: #f1f1f1;
+  border-radius: 15px;
+  padding: 40px;
+  width: 70%;          
+  max-width: 900px;    
+  margin: 40px auto;   
+  text-align: left;    
+}
 
-
+.help-box h2 {
+  text-align: center;  
+  margin-bottom: 20px;
+}
