@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My First HTML Page</title>
+    <title>Concordia University- Sign in</title>
     <!-- Link to external CSS file, dont need /frontend path cause of the staticroot in js-->
     <link rel="stylesheet" href="style.css">
 </head>
@@ -28,18 +28,18 @@
     <form action="/login" method="post">
         <h2 id ="logHeader">Login</h2>
 
-        <div id="role-select" style="width:100%; margin-bottom:18px;">
-            <label style="font-weight:bold; color:#083d8c;">Select role:</label>
-            <div style="display:flex; gap:20px; margin-top:8px;">
-                <label style="display:flex; align-items:center; gap:5px;">
+        <div id="role-select">
+            <label>Select role:</label>
+            <div class="role-options">
+                <label class="role-radio-label">
                     <input type="radio" name="role" value="student" required>
                     Student
                 </label>
-                <label style="display:flex; align-items:center; gap:5px;">
+                <label class="role-radio-label">
                     <input type="radio" name="role" value="organizer">
                     Organizer
                 </label>
-                <label style="display:flex; align-items:center; gap:5px;">
+                <label class="role-radio-label">
                     <input type="radio" name="role" value="administrator">
                     Administrator
                 </label>

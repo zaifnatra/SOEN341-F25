@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Concordia University- Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  
+</head>
+<body>
+    <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
+
+    <div class="navbar">
+        <a href="#">HOME</a>
+        <a href="#">ACCOUNT</a>
+        <a href="#">EVENTS</a>
+        <a href="#">DASHBOARD</a>
+        <a href="#">HELP</a>
+    </div>
+  <h1>Administrator Dashboard</h1>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('oversight')">Platform Oversight</div>
+    <div class="tab" onclick="showTab('analytics')">Analytics</div>
+    <div class="tab" onclick="showTab('management')">Organizations</div>
+  </div>
+
+  <!-- Oversight -->
+  <div id="oversight" class="content active">
+    <h2>Pending Organizer Accounts</h2>
+    <table>
+      <tr>
+        <th>Organizer Name</th>
+        <th>Date/Time</th>
+        <th>Actions</th>
+      </tr>
+      <tr>
+        <td>John Doe</td>
+        <td>2025-10-02 14:30</td>
+        <td>
+          <button class="approve" onclick="approveRow(this)">Approve</button>
+          <button class="reject" onclick="rejectRow(this)">Reject</button>
+          <button class="view">View Details</button>
+        </td>
+      </tr>
+      <tr>
+        <td>Jane Smith</td>
+        <td>2025-10-02 15:10</td>
+        <td>
+          <button class="approve" onclick="approveRow(this)">Approve</button>
+          <button class="reject" onclick="rejectRow(this)">Reject</button>
+          <button class="view">View Details</button>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Analytics -->
+  <div id="analytics" class="content">
+    <h2>Platform Analytics</h2>
+    <div class="stats">
+      <div class="stat-box">
+        <h3>Total Events</h3>
+        <p>128</p>
+      </div>
+      <div class="stat-box">
+        <h3>Tickets Issued</h3>
+        <p>2,350</p>
+      </div>
+      <div class="stat-box">
+        <h3>Participation Trend</h3>
+        <p style="color: green;">+12%</p>
+      </div>
+    </div>
+    <h3 style="margin-top:20px;">Events & Tickets</h3>
+    <table>
+      <tr>
+        <th>Event Name</th>
+        <th>Tickets Claimed</th>
+      </tr>
+      <tr>
+        <td>Hackathon 2025</td>
+        <td>450</td>
+      </tr>
+      <tr>
+        <td>Spring Concert</td>
+        <td>800</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Management -->
+  <div id="management" class="content">
+    <h2>Organizations</h2>
+    <table>
+      <tr>
+        <th>Organization</th>
+        <th>Members</th>
+        <th>Roles</th>
+        <th>Actions</th>
+      </tr>
+      <tr>
+        <td>Tech Club</td>
+        <td>25</td>
+        <td>President, VP, Member</td>
+        <td>
+          <button class="view">View</button>
+          <button class="edit">Edit</button>
+        </td>
+      </tr>
+      <tr>
+        <td>Art Society</td>
+        <td>12</td>
+        <td>Chair, Member</td>
+        <td>
+          <button class="view">View</button>
+          <button class="edit">Edit</button>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+   <div class="signout">
+        SIGN IN
+    </div>
+
+    <script src="admindashboard.js"></script>
+
+    </body>
+    </html>
