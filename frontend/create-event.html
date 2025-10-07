@@ -1,61 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Concordia University- Create event</title>
-  <link rel="stylesheet" href="style.css">
+ <meta charset="UTF-8">
+ <title>Concordia University - Create Event</title>
+ <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
 
-   <div class="navbar">
-        <a href="index.html">HOME</a>
-        <a href="account.html">ACCOUNT</a>
-        <a href="create-event.html">EVENTS</a>
-        <a href="admindashboard.html">DASHBOARD</a>
-        <a href="help.html">HELP</a>
-    </div>
-  
+ <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
+
+ <div class="navbar">
+   <a href="index.html">HOME</a>
+   <a href="account.html">ACCOUNT</a>
+   <a href="events.html">EVENTS</a>
+   <a href="admindashboard.html">DASHBOARD</a>
+   <a href="help.html">HELP</a>
+ </div>
   <div class="signout">
-    SIGN OUT
-  </div>
+   SIGN OUT
+ </div>
 
-  <div class="form-container">
-    <div class="form-group">
-      <input type="text" placeholder="Title">
-    </div>
 
-    <div class="form-group">
-      <textarea placeholder="Description of the event"></textarea>
-    </div>
+ <div class="form-container">
+   <div class="form-group">
+     <input id="event-title" type="text" placeholder="Title">
+   </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <input type="date" placeholder="Date">
-      </div>
-      <div class="form-group">
-        <input type="text" placeholder="Location">
-      </div>
-    </div>
 
-    <div class="form-group">
-      <input type="number" placeholder="Ticket Capacity">
-    </div>
+   <div class="form-group">
+     <textarea id="event-description" placeholder="Description of the event"></textarea>
+   </div>
 
-    <div class="form-group">
-      <select>
-        <option disabled selected>FREE OR PAID event</option>
-        <option value="free">Free</option>
-        <option value="paid">Paid</option>
-      </select>
-    </div>
 
-    <div class="button-row">
-      <button class="create-btn">+ CREATE</button>
-      <button class="save-btn">SAVE</button>
-    </div>
-  </div>
+   <div class="form-row">
+     <div class="form-group">
+       <input id="event-date" type="date">
+     </div>
+     <div class="form-group">
+       <input id="event-time" type="time">
+     </div>
+     <div class="form-group">
+       <input id="event-location" type="text" placeholder="Location">
+     </div>
+   </div>
 
+
+   <div class="form-group">
+     <input id="event-capacity" type="number" placeholder="Ticket Capacity">
+   </div>
+
+
+   <div class="form-group">
+     <select id="event-type">
+       <option disabled selected>FREE OR PAID event</option>
+       <option value="Free">Free</option>
+       <option value="Paid">Paid</option>
+     </select>
+   </div>
+
+
+   <div class="button-row">
+     <button id="create-btn" class="create-btn">+ CREATE</button>
+   </div>
+ </div>
+
+
+ <script src="createevent.js"></script>
 </body>
 </html>
+
+
+
