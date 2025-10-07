@@ -2,16 +2,14 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Concordia University- Sign in</title>
-    <!-- Link to external CSS file, dont need /frontend path cause of the staticroot in js-->
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Concordia University - Sign in</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
-
+  <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
 
     <div class="navbar">
         <a href="index.html">HOME</a>
@@ -21,51 +19,90 @@
         <a href="help.html">HELP</a>
     </div>
 
+  <div class="welcome-box">
+    <form id="loginForm">
+      <h2 id="logHeader">Login</h2>
 
+      <!-- Error message placeholder -->
+      <div id="errorMessage" style="display:none; color:#e50914; font-weight:bold; margin-bottom:10px;"></div>
 
-    <div class="welcome-box">
-        
-    <form action="/login" method="post">
-        <h2 id ="logHeader">Login</h2>
-
-        <div id="role-select">
-            <label>Select role:</label>
-            <div class="role-options">
-                <label class="role-radio-label">
-                    <input type="radio" name="role" value="student" required>
-                    Student
-                </label>
-                <label class="role-radio-label">
-                    <input type="radio" name="role" value="organizer">
-                    Organizer
-                </label>
-                <label class="role-radio-label">
-                    <input type="radio" name="role" value="administrator">
-                    Administrator
-                </label>
-            </div>
+      <div id="role-select">
+        <label>Select role:</label>
+        <div class="role-options">
+          <label class="role-radio-label">
+            <input type="radio" name="role" value="student" required>
+            Student
+          </label>
+          <label class="role-radio-label">
+            <input type="radio" name="role" value="organizer">
+            Organizer
+          </label>
+          <label class="role-radio-label">
+            <input type="radio" name="role" value="administrator">
+            Administrator
+          </label>
         </div>
-        <div id="login">
-            <input type="text" placeholder="Username" name="username">
-            <input type="password" placeholder="Password" name="password">
-           
-        </div>
-   
-    
-        <button type="submit" id="btn">Login</button>
+      </div>
 
-        <div id = "reg-link">
-            <p>Don't have an account?
-            <a href="create.html">Create Account</a></p>
-        </div>
-        </form>
-        </div>
-    
+      <div id="login">
+        <input type="text" placeholder="Username" name="username" required>
+        <input type="password" placeholder="Password" name="password" required>
+      </div>
 
-    <!-- Sign in button uses the same class as signout cuz of positioning -->
-    <div class="signout">
-        SIGN IN
-    </div>
+      <button type="submit" id="btn">Login</button>
+
+      <div id="reg-link">
+        <p>Don't have an account? <a href="create.html">Create Account</a></p>
+      </div>
+    </form>
+  </div>
+
+  <div class="signout">
+    <a href="signin.html">SIGN IN</a>
+  </div>
+
+  <script>
+document.getElementById("loginForm").addEventListener("submit", async function(event) {
+  event.preventDefault(); // Prevent full-page reload
+
+  const form = event.target;
+  const formData = new FormData(form);
+
+  // Extract input values
+  const username = formData.get("username");
+  const password = formData.get("password");
+  const role = formData.get("role");
+
+  try {
+    const response = await fetch("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password, role })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      // Redirect to homepage
+      window.location.href = "index.html";
+    } else {
+      // Show error message
+      const errorBox = document.getElementById("errorMessage");
+      errorBox.textContent = result.message || "Invalid credentials. Try again.";
+      errorBox.style.display = "block";
+
+      // Clear input fields
+      form.querySelector('input[name="username"]').value = "";
+      form.querySelector('input[name="password"]').value = "";
+    }
+  } catch (err) {
+    console.error("Login error:", err);
+    const errorBox = document.getElementById("errorMessage");
+    errorBox.textContent = "Network or server error. Please try again.";
+    errorBox.style.display = "block";
+  }
+});
+</script>
+
 </body>
-
 </html>
