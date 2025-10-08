@@ -140,9 +140,19 @@ app.get('/listUsers', async (req, res) => {
 
 // Logout
 app.get('/logout', (req, res) => {
+  req.session.logoutMessage = "You have been logged out.";
+  req.session.user = null;
   req.session.destroy(() => {
     res.redirect('/signin.html');
   });
+});
+
+// Check session status
+app.get('/session-status', (req, res) => {
+  const loggedIn = !!req.session.user;
+  const logoutMessage = req.session.logoutMessage || null;
+  req.session.logoutMessage = null; // Clear after sending
+  res.json({ loggedIn, logoutMessage });
 });
 
 // Start server
