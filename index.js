@@ -65,7 +65,7 @@ app.get('/signin', (req, res) => {
 
 // Handle signup
 app.post('/createAccount', async (req, res) => {
-  const { role, email, username, password } = req.body;
+  const { email, username, password } = req.body;
 
   try {
     // Prevent duplicate emails
@@ -75,7 +75,6 @@ app.post('/createAccount', async (req, res) => {
     }
 
     const newUser = {
-      role,
       email,
       username,
       password //  In production, hash this!
@@ -95,19 +94,18 @@ app.post('/createAccount', async (req, res) => {
 
 // Handle login (username + password + role)
 app.post('/login', async (req, res) => {
-  const { username, password, role } = req.body;
+  const { username, password} = req.body;
 
   try {
-    const user = await usersCollection.findOne({ username, password, role });
+    const user = await usersCollection.findOne({ username, password});
     if (!user) {
-      return res.json({ success: false, message: "Invalid username, password, or role." });
+      return res.json({ success: false, message: "Invalid username, password." });
     }
 
     // Start session
     req.session.user = {
       id: user._id,
       email: user.email,
-      role: user.role,
       username: user.username
     };
 
