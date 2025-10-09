@@ -4,6 +4,8 @@ const path = require('path');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const { MongoClient, ServerApiVersion } = require('mongodb');
+const { v4: uuidv4 } = require('uuid'); //DUMMY QR CODE
+const QRCode = require('qrcode'); //DUMMY QR CODE
 
 const app = express();
 
@@ -18,7 +20,7 @@ app.use(session({
   cookie: { secure: false }
 }));
 
-// Static files
+// Serve static frontend files
 app.use(express.static(path.join(__dirname, 'frontend')));
 
 // MongoDB connection
@@ -32,92 +34,91 @@ const client = new MongoClient(uri, {
 });
 
 let usersCollection;
+let eventsCollection;
 
 async function connectToMongo() {
   try {
     await client.connect();
     const db = client.db("CampusTicketing");
     usersCollection = db.collection("users");
-    console.log(" Connected to MongoDB");
+    eventsCollection = db.collection("events");
+    console.log("Connected to MongoDB");
 
-    //  Log existing users on startup
     const existingUsers = await usersCollection.find().toArray();
-    console.log(` ${existingUsers.length} user(s) currently in the database:`);
-    console.log(existingUsers);
-
+    console.log(`${existingUsers.length} user(s) currently in the database.`);
   } catch (error) {
-    console.error(" MongoDB connection error:", error);
+    console.error("MongoDB connection error:", error);
   }
 }
 connectToMongo();
 
-/* ---------------- ROUTES ---------------- */
+/* ---------------- MAIN ROUTES ---------------- */
 
-// Server main page
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
-// Server login page
 app.get('/signin', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'signin.html'));
 });
 
-// Handle signup
+/* ---------------- USER ROUTES ---------------- */
+
 app.post('/createAccount', async (req, res) => {
   const { email, username, password } = req.body;
-
   try {
-    // Prevent duplicate emails
     const existing = await usersCollection.findOne({ email });
     if (existing) {
       return res.send("Email already exists.");
     }
 
-    const newUser = {
-      email,
-      username,
-      password //  In production, hash this!
-    };
-
+    const newUser = { email, username, password };
     await usersCollection.insertOne(newUser);
-    console.log(" User created:", newUser);
+    console.log("New User created:", newUser);
 
-    // Redirect to login page
     res.redirect('/signin.html');
-
   } catch (error) {
     console.error("Error creating user:", error);
     res.status(500).send("Error creating account.");
   }
 });
 
-// Handle login (username + password + role)
 app.post('/login', async (req, res) => {
-  const { username, password} = req.body;
-
+  const { username, password } = req.body;
   try {
-    const user = await usersCollection.findOne({ username, password});
+    const user = await usersCollection.findOne({ username, password });
     if (!user) {
-      return res.json({ success: false, message: "Invalid username, password." });
+      return res.json({ success: false, message: "Invalid username or password." });
     }
 
-    // Start session
     req.session.user = {
       id: user._id,
       email: user.email,
       username: user.username
     };
 
-    // Successful login
     res.json({ success: true });
   } catch (error) {
     console.error("Error logging in:", error);
-    res.status(500).json({ success: false, message: "Server error. Please try again." });
+    res.status(500).json({ success: false, message: "Server error." });
   }
 });
 
-// Protected example route
+app.get('/logout', (req, res) => {
+  req.session.logoutMessage = "You have been logged out.";
+  req.session.user = null;
+  req.session.destroy(() => {
+    res.redirect('/signin.html');
+  });
+});
+
+app.get('/session-status', (req, res) => {
+  const loggedIn = !!req.session.user;
+  const logoutMessage = req.session.logoutMessage || null;
+  req.session.logoutMessage = null;
+  res.json({ loggedIn, logoutMessage });
+});
+
 app.get('/main.html', (req, res) => {
   if (!req.session.user) {
     return res.redirect('/signin.html');
@@ -125,7 +126,6 @@ app.get('/main.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'main.html'));
 });
 
-// Debug route: List users in terminal
 app.get('/listUsers', async (req, res) => {
   try {
     const users = await usersCollection.find().toArray();
@@ -138,26 +138,72 @@ app.get('/listUsers', async (req, res) => {
   }
 });
 
-// Logout
-app.get('/logout', (req, res) => {
-  req.session.logoutMessage = "You have been logged out.";
-  req.session.user = null;
-  req.session.destroy(() => {
-    res.redirect('/signin.html');
-  });
+/* ---------------- EVENT ROUTES ---------------- */
+
+app.post('/createEvent', async (req, res) => {
+  const { title, organizer, description, date, time, location, capacity, type } = req.body;
+
+  if (!title || !date || !time || !location) {
+    return res.status(400).json({ message: "Missing required fields." });
+  }
+
+  try {
+    const existing = await eventsCollection.findOne({ title });
+    if (existing) {
+      return res.status(400).json({ message: "Event title already exists." });
+    }
+
+    // Generate dynamic QR codes
+    const qrCodes = [];
+    for (let i = 0; i < capacity; i++) {
+      const qrData = uuidv4();
+      const qrImage = await QRCode.toDataURL(qrData);
+      qrCodes.push({ code: qrData, image: qrImage });
+    }
+    
+    const newEvent = {//event object in mongoDB
+      title,
+      organizer: organizer || "Admin",
+      description,
+      date,
+      time,
+      location,
+      capacity: parseInt(capacity),
+      type,
+      qrCodes,
+      scannedTickets: [],
+      unscannedTickets: [],
+      attendanceRate: 0,
+      remainingTickets: parseInt(capacity)
+    };
+
+    const insertResult = await eventsCollection.insertOne(newEvent);
+    console.log("New event added to MongoDB:");
+    console.log(JSON.stringify(newEvent, null, 2));
+    console.log(`ID MongoDB _id: ${insertResult.insertedId}`);
+
+
+    
+
+    res.status(201).json({ message: "Event created successfully!" });
+  } catch (error) {
+    console.error("Error creating event:", error);
+    res.status(500).json({ message: "Server error creating event." });
+  }
 });
 
-// Check session status
-app.get('/session-status', (req, res) => {
-  const loggedIn = !!req.session.user;
-  const logoutMessage = req.session.logoutMessage || null;
-  req.session.logoutMessage = null; // Clear after sending
-  res.json({ loggedIn, logoutMessage });
+app.get('/events', async (req, res) => {
+  try {
+    const events = await eventsCollection.find().toArray();
+    res.json(events);
+  } catch (error) {
+    console.error("Error fetching events:", error);
+    res.status(500).json({ message: "Error retrieving events." });
+  }
 });
 
-// Start server
+/* ---------------- SERVER ---------------- */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
-
