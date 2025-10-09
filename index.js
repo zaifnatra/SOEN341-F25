@@ -138,6 +138,16 @@ app.get('/listUsers', async (req, res) => {
   }
 });
 
+app.get('/user-profile', (req, res) => {
+  if (req.session && req.session.user) {
+    // Only send safe fields
+    const { username, email, role } = req.session.user;
+    res.json({ username, email, role });
+  } else {
+    res.status(401).json({ error: "Not logged in" });
+  }
+});
+
 /* ---------------- EVENT ROUTES ---------------- */
 
 app.post('/createEvent', async (req, res) => {
