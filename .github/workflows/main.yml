@@ -1,0 +1,22 @@
+#Github triggers: https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows
+
+#run this test every pull request 
+name: pr_test
+on: 
+
+  pull_requests:
+    branches:
+      -main 
+
+  jobs: 
+    test:
+      runs-on: ubuntu-latest
+      container: 
+        image: node:20
+      steps:
+        - uses: actions/checkout
+          with:
+            node-version: 20
+        - run: npm ci
+        - run: npm test
+        - run: npm run build
