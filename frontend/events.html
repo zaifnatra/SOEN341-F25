@@ -27,15 +27,60 @@
    <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
  </footer>
 
-<script>
-// Fetch and display all events from MongoDB
-async function loadEvents() {
-  const eventsList = document.getElementById("events-list");
-  // Your fetch logic here
-}
-</script>
+ <script>
+    // Fetch and display all events from MongoDB
+    async function loadEvents() {
+      const eventsList = document.getElementById("events-list");
+
+      try {
+        const response = await fetch("/events");
+        const events = await response.json();
+
+        if (!Array.isArray(events) || events.length === 0) {
+          eventsList.innerHTML = "<p>No events found.</p>";
+          return;
+        }
+
+        eventsList.innerHTML = "";
+
+        events.forEach((ev) => {
+          const card = document.createElement("div");
+          card.classList.add("event-card");
+
+          card.innerHTML = `
+            <h3>${ev.title}</h3>
+            <p><strong>Date:</strong> ${ev.date}</p>
+            <p><strong>Time:</strong> ${ev.time}</p>
+            <p><strong>Location:</strong> ${ev.location}</p>
+            <p>${ev.description || ""}</p>
+            <p><strong>Tickets:</strong> ${ev.capacity} | ${ev.type}</p>
+            <p><strong>Remaining:</strong> ${ev.remainingTickets ?? ev.capacity}</p>
+          `;
+
+          // Optional: display first QR code thumbnail
+          if (ev.qrCodes && ev.qrCodes.length > 0) {
+            const qrImg = document.createElement("img");
+            qrImg.src = ev.qrCodes[0].image;
+            qrImg.alt = "QR Code sample";
+            qrImg.classList.add("qr-sample");
+            qrImg.style.width = "100px";
+            qrImg.style.marginTop = "8px";
+            card.appendChild(qrImg);
+          }
+
+          eventsList.appendChild(card);
+        });
+      } catch (error) {
+        console.error("Error loading events:", error);
+        eventsList.innerHTML = "<p>Error fetching events. Please try again later.</p>";
+      }
+    }
+
+    window.onload = loadEvents;
+  </script>
 
 <div class="signout">
+  <script src="signout.js"></script>
   <a href="signin.html">SIGN IN</a>
 </div>
 
@@ -43,3 +88,5 @@ async function loadEvents() {
 </body>
 </html>
 
+
+  
