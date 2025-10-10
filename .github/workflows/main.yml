@@ -1,22 +1,47 @@
 #Github triggers: https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows
 
-#run this test every pull request 
-name: pr_test
-on: 
+name: CI Pipeline
 
-  pull_requests:
+on:
+  pull_request:
     branches:
-      -main 
+      - main
+    types: [opened, synchronize, reopened, closed]
 
-  jobs: 
-    test:
-      runs-on: ubuntu-latest
-      container: 
-        image: node:20
-      steps:
-        - uses: actions/checkout
-          with:
-            node-version: 20
-        - run: npm ci
-        - run: npm test
-        - run: npm run build
+permissions:
+  contents: write
+
+jobs:
+  test_and_build:
+    if: github.event.action != 'closed' 
+    runs-on: ubuntu-latest
+    container:
+      image: node:20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build project
+        run: npm run build
+
+  delete_branch:
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: dlt_branch_after_merge
+        run: |
+          echo "Deleting branch: ${{ github.event.pull_request.head.ref }}"
+          git push origin --delete ${{ github.event.pull_request.head.ref }}
