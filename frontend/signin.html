@@ -42,47 +42,98 @@
 
   <div id="auth-btn-container"></div>
 
-  <script>
-document.getElementById("loginForm").addEventListener("submit", async function(event) {
-  event.preventDefault(); // Prevent full-page reload
+    <script>
+    document.getElementById("loginForm").addEventListener("submit", async function(event) {
+      event.preventDefault(); // Prevent full-page reload
 
-  const form = event.target;
-  const formData = new FormData(form);
+      const form = event.target;
+      const formData = new FormData(form);
 
-  // Extract input values
-  const username = formData.get("username");
-  const password = formData.get("password");
+      // Extract input values
+      const username = formData.get("username");
+      const password = formData.get("password");
 
-  try {
-    const response = await fetch("/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password})
+      try {
+        const response = await fetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password})
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Redirect to homepage
+          window.location.href = "index.html";
+        } else {
+          // Show error message
+          const errorBox = document.getElementById("errorMessage");
+          errorBox.textContent = result.message || "Invalid credentials. Try again.";
+          errorBox.style.display = "block";
+
+          // Clear input fields
+          form.querySelector('input[name="username"]').value = "";
+          form.querySelector('input[name="password"]').value = "";
+        }
+      } catch (err) {
+        console.error("Login error:", err);
+        const errorBox = document.getElementById("errorMessage");
+        errorBox.textContent = "Network or server error. Please try again.";
+        errorBox.style.display = "block";
+      }
     });
+    </script>
+    <script src="signout.js"></script>
+    
+    <!-- Role-based navbar -->
+    <script>
+    fetch('/user-profile')
+    .then(res => {
+        if (!res.ok) throw new Error("Not logged in");
+        return res.json();
+    })
+    .then(user => {
+        const nav = document.querySelector('.navbar');
+        if (!nav) return;
 
-    const result = await response.json();
+        // build navbar only for logged-in users
+        switch (user.role) {
+        case 'organizer':
+            nav.innerHTML = `
+            <a href="index.html">HOME</a>
+            <a href="account.html">ACCOUNT</a>
+            <a href="events.html">EVENTS</a>
+            <a href="organizerdashboard.html">DASHBOARD</a>
+            <a href="help.html">HELP</a>`;
+            break;
+        case 'administrator':
+            nav.innerHTML = `
+            <a href="index.html">HOME</a>
+            <a href="account.html">ACCOUNT</a>
+            <a href="events.html">EVENTS</a>
+            <a href="admindashboard.html">DASHBOARD</a>
+            <a href="help.html">HELP</a>`;
+            break;
+        default:
+            // fallback for logged-in student
+            nav.innerHTML = `
+            <a href="index.html">HOME</a>
+            <a href="account.html">ACCOUNT</a>
+            <a href="events.html">EVENTS</a>
+            <a href="help.html">HELP</a>`;
+        }
+    })
+    .catch(() => {
+        // explicitly handle NOT LOGGED IN case
+        const nav = document.querySelector('.navbar');
+        if (!nav) return;
+        nav.innerHTML = `
+        <a href="index.html">HOME</a>
+        <a href="account.html">ACCOUNT</a>
+        <a href="events.html">EVENTS</a>
+        <a href="help.html">HELP</a>`;
+    });
+    </script>
 
-    if (result.success) {
-      // Redirect to homepage
-      window.location.href = "index.html";
-    } else {
-      // Show error message
-      const errorBox = document.getElementById("errorMessage");
-      errorBox.textContent = result.message || "Invalid credentials. Try again.";
-      errorBox.style.display = "block";
-
-      // Clear input fields
-      form.querySelector('input[name="username"]').value = "";
-      form.querySelector('input[name="password"]').value = "";
-    }
-  } catch (err) {
-    console.error("Login error:", err);
-    const errorBox = document.getElementById("errorMessage");
-    errorBox.textContent = "Network or server error. Please try again.";
-    errorBox.style.display = "block";
-  }
-});
-</script>
-<script src="signout.js"></script>
 </body>
 </html>

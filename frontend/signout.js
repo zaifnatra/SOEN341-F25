@@ -1,3 +1,5 @@
+console.log("signout.js started");
+
 fetch('/session-status')
   .then(res => res.json())
   .then(data => {
