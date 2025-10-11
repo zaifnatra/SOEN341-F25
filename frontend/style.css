@@ -610,11 +610,116 @@ footer {
  margin-top: 7px;
 }
 
+/* ===== ORGANIZER DASHBOARD PAGE ===== */
 
+main {
+  width: 85%;
+  margin: 50px auto 100px auto;
+  background: white;
+  padding: 30px 40px;
+  border-radius: 20px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
 
+main h1 {
+  text-align: center;
+  font-size: 32px;
+  color: #083d8c;
+  margin-bottom: 40px;
+  letter-spacing: 1px;
+}
 
+.events-section h3 {
+  color: #083d8c;
+  font-size: 22px;
+  margin-bottom: 20px;
+  border-left: 5px solid #083d8c;
+  padding-left: 10px;
+}
 
+.events-section table {
+  width: 100%;
+  margin-top: 15px;
+  border-collapse: collapse;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
 
+.events-section thead {
+  background-color: #215ca8;
+}
 
+.events-section th {
+  color: #083d8c;
+  font-weight: bold;
+  padding: 14px 16px;
+  font-size: 15px;
+  border-bottom: 2px solid #c7d2fe;
+}
 
+.events-section td {
+  padding: 12px 16px;
+  color: #083d8c;
+  font-size: 14px;
+}
 
+.events-section tbody tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+
+.events-section tbody tr:hover {
+  background-color: #e0f2fe;
+  transition: 0.2s;
+}
+
+.quick-actions {
+  background: #f1f5f9;
+  border-radius: 15px;
+  padding: 25px 30px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.07);
+  text-align: center;
+  width: fit-content;
+  margin: 40px auto 0 auto;
+}
+
+.quick-actions h4 {
+  color: #083d8c;
+  margin-bottom: 20px;
+  font-size: 18px;
+}
+
+.quick-actions button {
+  padding: 12px 22px;
+  margin: 8px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.quick-actions .create-button {
+   background-color: #3b82f6;
+  color: white;
+}
+.quick-actions .create-button:hover {
+ background-color: #1d4ed8;
+}
+
+.quick-actions .save-button {
+  background-color: #3b82f6;
+  color: white;
+}
+.quick-actions .save-button:hover {
+  background-color: #1d4ed8;
+}
+
+.quick-actions .qr-button {
+  background-color: #3b82f6;
+  color: white;
+}
+.quick-actions .qr-button:hover {
+  background-color: #1d4ed8;
+}
