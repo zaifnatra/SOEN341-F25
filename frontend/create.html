@@ -14,35 +14,19 @@
 
 
      <div class="navbar">
-        <a href="index.html">HOME</a>
-        <a href="account.html">ACCOUNT</a>
-        <a href="events.html">EVENTS</a>
-        <a href="admindashboard.html">DASHBOARD</a>
-        <a href="help.html">HELP</a>
-    </div>
+      <a href="index.html">HOME</a>
+       <a href="/account">ACCOUNT</a>
+       <a href="/eventspage">EVENTS</a>
+       <a id="dashboard-link" href="#">DASHBOARD</a>
+       <a href="help.html">HELP</a>
+  </div>
 
 
     <div class="welcome-box">
         <form action="/createAccount" method="post">
             <h2 id="logHeader">Create Account</h2>
             <div id="login">
-                <div id="role-select">
-                    <label>Select role:</label>
-                    <div class="role-options">
-                        <label class="role-radio-label">
-                            <input type="radio" name="role" value="student" required>
-                            Student
-                        </label>
-                        <label class="role-radio-label">
-                            <input type="radio" name="role" value="organizer">
-                            Organizer
-                        </label>
-                        <label class="role-radio-label">
-                            <input type="radio" name="role" value="administrator">
-                            Administrator
-                        </label>
-                    </div>
-                </div>
+                <!-- Role select removed for simplicity -->
                 <input type="email" placeholder="Email" name="email" required>
                 <input type="text" placeholder="Username" name="username">
                 <input type="password" placeholder="Password" name="password">
@@ -66,6 +50,8 @@
      <footer>
    <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
  </footer>
+ <script src="index_role.js"></script>
+
 </body>
 
 </html>

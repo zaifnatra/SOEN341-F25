@@ -4,6 +4,8 @@ const path = require('path');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const { MongoClient, ServerApiVersion } = require('mongodb');
+const { v4: uuidv4 } = require('uuid'); //DUMMY QR CODE
+const QRCode = require('qrcode'); //DUMMY QR CODE
 
 const app = express();
 
@@ -18,7 +20,7 @@ app.use(session({
   cookie: { secure: false }
 }));
 
-// Static files
+// Serve static frontend files
 app.use(express.static(path.join(__dirname, 'frontend')));
 
 // MongoDB connection
@@ -32,94 +34,92 @@ const client = new MongoClient(uri, {
 });
 
 let usersCollection;
+let eventsCollection;
 
 async function connectToMongo() {
   try {
     await client.connect();
     const db = client.db("CampusTicketing");
     usersCollection = db.collection("users");
-    console.log(" Connected to MongoDB");
+    eventsCollection = db.collection("events");
+    console.log("Connected to MongoDB");
 
-    //  Log existing users on startup
     const existingUsers = await usersCollection.find().toArray();
-    console.log(` ${existingUsers.length} user(s) currently in the database:`);
-    console.log(existingUsers);
-
+    console.log(`${existingUsers.length} user(s) currently in the database.`);
   } catch (error) {
-    console.error(" MongoDB connection error:", error);
+    console.error("MongoDB connection error:", error);
   }
 }
 connectToMongo();
 
-/* ---------------- ROUTES ---------------- */
+/* ---------------- MAIN ROUTES ---------------- */
 
-// Server main page
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
-// Server login page
 app.get('/signin', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'signin.html'));
 });
 
-// Handle signup
-app.post('/createAccount', async (req, res) => {
-  const { role, email, username, password } = req.body;
+/* ---------------- USER ROUTES ---------------- */
 
+app.post('/createAccount', async (req, res) => {
+  const { email, username, password } = req.body;
   try {
-    // Prevent duplicate emails
     const existing = await usersCollection.findOne({ email });
     if (existing) {
       return res.send("Email already exists.");
     }
 
-    const newUser = {
-      role,
-      email,
-      username,
-      password //  In production, hash this!
-    };
-
+    const newUser = { email, username, password };
     await usersCollection.insertOne(newUser);
-    console.log(" User created:", newUser);
+    console.log("New User created:", newUser);
 
-    // Redirect to login page
     res.redirect('/signin.html');
-
   } catch (error) {
     console.error("Error creating user:", error);
     res.status(500).send("Error creating account.");
   }
 });
 
-// Handle login (username + password + role)
 app.post('/login', async (req, res) => {
-  const { username, password, role } = req.body;
-
+  const { username, password } = req.body;
   try {
-    const user = await usersCollection.findOne({ username, password, role });
+    const user = await usersCollection.findOne({ username, password });
     if (!user) {
-      return res.json({ success: false, message: "Invalid username, password, or role." });
+      return res.json({ success: false, message: "Invalid username or password." });
     }
 
-    // Start session
     req.session.user = {
       id: user._id,
       email: user.email,
-      role: user.role,
-      username: user.username
+      username: user.username,
+      role: user.role || "student" //default role is student
     };
 
-    // Successful login
     res.json({ success: true });
   } catch (error) {
     console.error("Error logging in:", error);
-    res.status(500).json({ success: false, message: "Server error. Please try again." });
+    res.status(500).json({ success: false, message: "Server error." });
   }
 });
 
-// Protected example route
+app.get('/logout', (req, res) => {
+  req.session.logoutMessage = "You have been logged out.";
+  req.session.user = null;
+  req.session.destroy(() => {
+    res.redirect('/signin.html');
+  });
+});
+
+app.get('/session-status', (req, res) => {
+  const loggedIn = !!req.session.user;
+  const logoutMessage = req.session.logoutMessage || null;
+  req.session.logoutMessage = null;
+  res.json({ loggedIn, logoutMessage });
+});
+
 app.get('/main.html', (req, res) => {
   if (!req.session.user) {
     return res.redirect('/signin.html');
@@ -127,7 +127,6 @@ app.get('/main.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'main.html'));
 });
 
-// Debug route: List users in terminal
 app.get('/listUsers', async (req, res) => {
   try {
     const users = await usersCollection.find().toArray();
@@ -140,16 +139,125 @@ app.get('/listUsers', async (req, res) => {
   }
 });
 
-// Logout
-app.get('/logout', (req, res) => {
-  req.session.destroy(() => {
-    res.redirect('/signin.html');
-  });
+app.get('/user-profile', (req, res) => {
+  if (req.session && req.session.user) {
+    // Only send safe fields
+    const { username, email, role } = req.session.user;
+    res.json({ username, email, role });
+  } else {
+    res.status(401).json({ error: "Not logged in" });
+  }
 });
 
-// Start server
+// Middleware to protect pages that require login
+function requireLogin(req, res, next) {
+  if (!req.session.user) {
+    return res.redirect('/signin.html');
+  }
+  next();
+}
+
+// Protected pages (must be logged in)
+app.get('/account', requireLogin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'account.html'));
+});
+
+app.get('/eventspage', requireLogin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'events.html'));
+});
+
+app.get('/admindashboard', requireLogin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'admindashboard.html'));
+});
+
+/* ---------------- EVENT ROUTES ---------------- */
+
+app.post('/createEvent', async (req, res) => {
+  const { title, description, date, time, location, capacity, type } = req.body;
+
+  if (!title || !date || !time || !location) {
+    return res.status(400).json({ message: "Missing required fields." });
+  }
+
+  try {
+    // Ensure only logged-in users can create events
+    if (!req.session.user) {
+      return res.status(403).json({ message: "You must be logged in to create events." });
+    }
+
+    const organizer = req.session.user.email || req.session.user.username;
+
+    const existing = await eventsCollection.findOne({ title });
+    if (existing) {
+      return res.status(400).json({ message: "Event title already exists." });
+    }
+
+    // Generate dynamic QR codes
+    const qrCodes = [];
+    for (let i = 0; i < capacity; i++) {
+      const qrData = uuidv4();
+      const qrImage = await QRCode.toDataURL(qrData);
+      qrCodes.push({ code: qrData, image: qrImage });
+    }
+
+    const newEvent = {
+      title,
+      organizer, // <-- now uses logged-in organizer
+      description,
+      date,
+      time,
+      location,
+      capacity: parseInt(capacity),
+      type,
+      qrCodes,
+      scannedTickets: [],
+      unscannedTickets: [],
+      attendanceRate: 0,
+      remainingTickets: parseInt(capacity)
+    };
+
+    const insertResult = await eventsCollection.insertOne(newEvent);
+    console.log("New event added:", newEvent);
+
+    res.status(201).json({ message: "Event created successfully!" });
+  } catch (error) {
+    console.error("Error creating event:", error);
+    res.status(500).json({ message: "Server error creating event." });
+  }
+});
+
+
+app.get('/events', async (req, res) => {
+  try {
+    const events = await eventsCollection.find().toArray();
+    console.log("Returning events:", events.length);
+    res.json(events);
+  } catch (error) {
+    console.error("Error fetching events:", error);
+    res.status(500).json({ message: "Error retrieving events." });
+  }
+});
+
+
+//express route for organizer dashboard
+app.get('/organizerdashboard', requireLogin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'organizerdashboard.html'));
+});
+
+// DEBUG route: show only event titles and organizer fields
+app.get('/debug-events', async (req, res) => {
+  try {
+    const events = await eventsCollection.find({}, { projection: { title: 1, organizer: 1 } }).toArray();
+    res.json(events);
+  } catch (error) {
+    console.error("Error fetching debug events:", error);
+    res.status(500).json({ message: "Error fetching debug data." });
+  }
+});
+
+
+/* ---------------- SERVER ---------------- */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
-

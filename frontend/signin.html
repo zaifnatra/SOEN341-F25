@@ -12,12 +12,12 @@
   <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
 
     <div class="navbar">
-        <a href="index.html">HOME</a>
-        <a href="account.html">ACCOUNT</a>
-        <a href="events.html">EVENTS</a>
-        <a href="admindashboard.html">DASHBOARD</a>
-        <a href="help.html">HELP</a>
-    </div>
+      <a href="index.html">HOME</a>
+       <a href="/account">ACCOUNT</a>
+       <a href="/eventspage">EVENTS</a>
+       <a id="dashboard-link" href="#">DASHBOARD</a>
+       <a href="help.html">HELP</a>
+  </div>
 
   <div class="welcome-box">
     <form id="loginForm">
@@ -26,23 +26,6 @@
       <!-- Error message placeholder -->
       <div id="errorMessage" style="display:none; color:#e50914; font-weight:bold; margin-bottom:10px;"></div>
 
-      <div id="role-select">
-        <label>Select role:</label>
-        <div class="role-options">
-          <label class="role-radio-label">
-            <input type="radio" name="role" value="student" required>
-            Student
-          </label>
-          <label class="role-radio-label">
-            <input type="radio" name="role" value="organizer">
-            Organizer
-          </label>
-          <label class="role-radio-label">
-            <input type="radio" name="role" value="administrator">
-            Administrator
-          </label>
-        </div>
-      </div>
 
       <div id="login">
         <input type="text" placeholder="Username" name="username" required>
@@ -57,9 +40,7 @@
     </form>
   </div>
 
-  <div class="signout">
-    <a href="signin.html">SIGN IN</a>
-  </div>
+  <div id="auth-btn-container"></div>
 
   <script>
 document.getElementById("loginForm").addEventListener("submit", async function(event) {
@@ -71,13 +52,12 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
   // Extract input values
   const username = formData.get("username");
   const password = formData.get("password");
-  const role = formData.get("role");
 
   try {
     const response = await fetch("/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password, role })
+      body: JSON.stringify({ username, password})
     });
 
     const result = await response.json();
@@ -103,6 +83,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
   }
 });
 </script>
-
+<script src="signout.js"></script>
+<script src="index_role.js"></script>
 </body>
 </html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Concordia University - Organizer Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
+
+   <div class="navbar">
+       <a href="index.html">HOME</a>
+       <a href="/account">ACCOUNT</a>
+       <a href="/eventspage">EVENTS</a>
+       <a id="dashboard-link" href="#">DASHBOARD</a>
+       <a href="help.html">HELP</a>
+  </div>
+
+    <main>
+        <h1>Organizer Dashboard</h1>
+
+        <div class="events-section">
+            <h3>Your Events</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Tickets Issued</th>
+                        <th>Attended</th>
+                        <th>Attendance Rate</th>
+                        <th>Capacity</th>
+                        <th>Remaining</th>
+                    </tr>
+                </thead>
+                <tbody id="events-table-body">
+                    <tr>
+                        <td colspan="5">No data loaded yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="quick-actions card">
+                <h4>Quick Actions</h4>
+                <button class="create-button" onclick="location.href='create-event.html'">Create New Event</button>
+                <button class="save-button" id="export-csv-button">Export CSV</button>
+                <button class="qr-button" onclick="location.href='qrcodescan.html'">Scan Ticket</button>
+
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
+    </footer>
+
+    <script src="organizerdashboard.js"></script>
+    <script src="index_role.js"></script>
+    <script src="signout.js"></script>
+
+</body>
+
+</html>

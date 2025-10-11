@@ -1,75 +1,66 @@
-// events.js
+// createevent.js
 
-
-// Save event to localStorage
-function saveEvent(event) {
- let events = JSON.parse(localStorage.getItem("events")) || [];
- events.push(event);
- localStorage.setItem("events", JSON.stringify(events));
-}
-
-
-// event creation
 const createBtn = document.getElementById("create-btn");
+
 if (createBtn) {
- createBtn.addEventListener("click", function () {
-   const title = document.getElementById("event-title").value;
-   const description = document.getElementById("event-description").value;
-   const date = document.getElementById("event-date").value;
-   const time = document.getElementById("event-time").value;  
-   const location = document.getElementById("event-location").value;
-   const capacity = document.getElementById("event-capacity").value;
-   const type = document.getElementById("event-type").value;
+  createBtn.addEventListener("click", async function () {
+    const title = document.getElementById("event-title").value.trim();
+    const description = document.getElementById("event-description").value.trim();
+    const date = document.getElementById("event-date").value;
+    const time = document.getElementById("event-time").value;
+    const location = document.getElementById("event-location").value.trim();
+    const capacity = document.getElementById("event-capacity").value;
+    const type = document.getElementById("event-type").value;
+
+    if (!title || !date || !time || !location || !capacity || !type) {
+      alert("⚠️ Please fill in all required fields!");
+      return;
+    }
+
+    // Block invalid capacities
+    if (capacity <= 0) {
+    alert("⚠️ Ticket capacity must be greater than 0!");
+    return;
+    }
 
 
-   if (!title || !date || !time || !location) {
-     alert("Please fill in the required fields!");
-     return;
-   }
+    //Block Past Dates
+    const selectedDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (selectedDate < today) {
+    alert("⚠️ You cannot select a past date for the event!");
+    return;
+    }
 
+    try {
+      const response = await fetch("/createEvent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          description,
+          date,
+          time,
+          location,
+          capacity,
+          type,
+        }),
+      });
 
-   const newEvent = {
-     title,
-     description,
-     date,
-     time,  
-     location,
-     capacity,
-     type,
-   };
+      const data = await response.json();
 
-
-   saveEvent(newEvent);
-   alert("Event created successfully!");
-   window.location.href = "events.html"; // redirect to events page
- });
+      if (response.ok) {
+        alert("🎉 Event created successfully!");
+        console.log("Server response:", data);
+        window.location.href = "events.html";
+      } else {
+        alert("Error creating event: " + data.message);
+        console.error("Server error:", data);
+      }
+    } catch (error) {
+      console.error("Error sending event data:", error);
+      alert(" Could not connect to the server.");
+    }
+  });
 }
-
-
-// load events into events.html
-function loadEvents() {
- let events = JSON.parse(localStorage.getItem("events")) || [];
- const eventsList = document.getElementById("events-list");
-
-
- if (eventsList) {
-   eventsList.innerHTML = "";
-   events.forEach((ev) => {
-     const card = document.createElement("div");
-     card.classList.add("event-card");
-     card.innerHTML = `
-       <h3>${ev.title}</h3>
-       <p><strong>Date:</strong> ${ev.date}</p>
-       <p><strong>Time:</strong> ${ev.time}</p>   
-       <p><strong>Location:</strong> ${ev.location}</p>
-       <p>${ev.description}</p>
-       <p><strong>Tickets:</strong> ${ev.capacity} | ${ev.type}</p>
-       <button class="signup-btn">Sign Up</button>
-     `;
-     eventsList.appendChild(card);
-   });
- }
-}
-
-
-window.onload = loadEvents;

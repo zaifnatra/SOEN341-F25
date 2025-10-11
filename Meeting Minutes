@@ -3,7 +3,11 @@ Discussed for 45 minutes the foundations of our project. This included focusing 
 Once the visitor has logged in to the site, we decided that the site functionalities itself would slightly differ depending on if the user is a student, organizer or administrator. 
 For Sprint 2, we're going to focus on completing the core functionalities of the Organizer, this includes the issues listed in issue #6 (Event Creation, Event Analytics, Tools). 
 The Administrator issues will also begin development this sprint, it will use the Organizer components as a template with its own modifications.
-Brainstormed two potential additional features, the first being for Organizers and allowing them to create a draft/preview of their events before publishing it. The second being an event recommendation for students. 
+Brainstormed two potential additional features, the first being for Organizers and allowing them to create a draft/preview of their events before publishing it. The second being an event recommendation for students.
+
+
+
+TEST PR FOR MAIN.YML
 
 
 
