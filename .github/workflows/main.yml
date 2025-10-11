@@ -1,4 +1,4 @@
-#Github triggers: https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows
+# Github triggers: https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows
 
 name: CI Pipeline
 
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   test_and_build:
-    if: github.event.action != 'closed' 
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     container:
       image: node:20
@@ -36,12 +36,30 @@ jobs:
       - name: Build project
         run: npm run build
 
+
   delete_branch:
-    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true
+    needs: test_and_build   # ensures tests finish first
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
-      - name: dlt_branch_after_merge
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Delete branch after merge
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Deleting branch: ${{ github.event.pull_request.head.ref }}"
-          git push origin --delete ${{ github.event.pull_request.head.ref }}
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
+          
+          # Only attempt deletion if branch exists
+          if git show-ref --verify --quiet refs/remotes/origin/${{ github.event.pull_request.head.ref }}; then
+            git push origin --delete ${{ github.event.pull_request.head.ref }} || echo "Branch protected, skipping."
+          else
+            echo "Branch already deleted or doesn't exist, skipping."
+          fi
