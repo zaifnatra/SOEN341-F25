@@ -148,6 +148,27 @@ app.get('/user-profile', (req, res) => {
   }
 });
 
+// Middleware to protect pages that require login
+function requireLogin(req, res, next) {
+  if (!req.session.user) {
+    return res.redirect('/signin.html');
+  }
+  next();
+}
+
+// Protected pages (must be logged in)
+app.get('/account', requireLogin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'account.html'));
+});
+
+app.get('/eventspage', requireLogin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'events.html'));
+});
+
+app.get('/admindashboard', requireLogin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'admindashboard.html'));
+});
+
 /* ---------------- EVENT ROUTES ---------------- */
 
 app.post('/createEvent', async (req, res) => {
