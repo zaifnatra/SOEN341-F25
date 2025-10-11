@@ -17,6 +17,13 @@ if (createBtn) {
       return;
     }
 
+    // Block invalid capacities
+    if (capacity <= 0) {
+    alert("⚠️ Ticket capacity must be greater than 0!");
+    return;
+    }
+
+
     //Block Past Dates
     const selectedDate = new Date(date);
     const today = new Date();
