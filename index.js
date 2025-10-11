@@ -161,7 +161,7 @@ app.get('/account', requireLogin, (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'account.html'));
 });
 
-app.get('/events2', requireLogin, (req, res) => {
+app.get('/eventspage', requireLogin, (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'events.html'));
 });
 
