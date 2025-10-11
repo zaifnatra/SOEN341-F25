@@ -25,6 +25,9 @@
        <a href="help.html">HELP</a>
    </div>
 
+   <!-- SignIn/Out container (signout.js)-->
+   <div id="auth-btn-container"></div>
+
 
 <div class="search-box">
  <input type="text" placeholder="Search through all our campus events">
@@ -66,6 +69,51 @@
    <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
  </footer>
 
+ <!-- Role-based navbar -->
+  <script>
+  fetch('/user-profile')
+    .then(res => res.json())
+    .then(user => {
+      const nav = document.querySelector('.navbar');
+      if (!nav) return;
+
+      switch (user.role) {
+        case 'organizer':
+          nav.innerHTML = `
+            <a href="index.html">HOME</a>
+            <a href="account.html">ACCOUNT</a>
+            <a href="events.html">EVENTS</a>
+            <a href="organizerdashboard.html">DASHBOARD</a>
+            <a href="help.html">HELP</a>`;
+          break;
+        case 'administrator':
+          nav.innerHTML = `
+            <a href="index.html">HOME</a>
+            <a href="account.html">ACCOUNT</a>
+            <a href="events.html">EVENTS</a>
+            <a href="admindashboard.html">DASHBOARD</a>
+            <a href="help.html">HELP</a>`;
+          break;
+        case 'student':
+        default:
+          nav.innerHTML = `
+            <a href="index.html">HOME</a>
+            <a href="account.html">ACCOUNT</a>
+            <a href="events.html">EVENTS</a>
+            <a href="help.html">HELP</a>`;
+          break;
+      }
+    })
+    .catch(() => {
+      const nav = document.querySelector('.navbar');
+      if (!nav) return;
+      nav.innerHTML = `
+        <a href="index.html">HOME</a>
+        <a href="account.html">ACCOUNT</a>
+        <a href="events.html">EVENTS</a>
+        <a href="help.html">HELP</a>`;
+    });
+   </script>
    <script src="signout.js"></script>
 
 </body>

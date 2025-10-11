@@ -1,3 +1,4 @@
+<!-- Account creation-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -26,7 +27,15 @@
         <form action="/createAccount" method="post">
             <h2 id="logHeader">Create Account</h2>
             <div id="login">
-                <!-- Role select removed for simplicity -->
+                <!-- Role selection -->
+                <select id="role" name="role" required style="border:2px solid #083d8c; border-radius:11px; padding:12px; font-size:16px; color:#083d8c; background:white;">
+                    <option value="" disabled selected>Select a role</option>
+                    <option value="student">Student</option>
+                    <option value="organizer">Organizer</option>
+                    <option value="administrator">Administrator</option>
+                </select>
+                
+                <!-- Basic input fields-->
                 <input type="email" placeholder="Email" name="email" required>
                 <input type="text" placeholder="Username" name="username">
                 <input type="password" placeholder="Password" name="password">

@@ -65,14 +65,14 @@ app.get('/signin', (req, res) => {
 /* ---------------- USER ROUTES ---------------- */
 
 app.post('/createAccount', async (req, res) => {
-  const { email, username, password } = req.body;
+  const { email, username, password, role } = req.body;
   try {
     const existing = await usersCollection.findOne({ email });
     if (existing) {
       return res.send("Email already exists.");
     }
 
-    const newUser = { email, username, password };
+    const newUser = { email, username, password, role };
     await usersCollection.insertOne(newUser);
     console.log("New User created:", newUser);
 
@@ -94,10 +94,12 @@ app.post('/login', async (req, res) => {
     req.session.user = {
       id: user._id,
       email: user.email,
-      username: user.username
+      username: user.username,
+      role: user.role
     };
 
-    res.json({ success: true });
+    // Return success + Redirect logic with role
+    res.json({ success: true, role: req.session.user.role });
   } catch (error) {
     console.error("Error logging in:", error);
     res.status(500).json({ success: false, message: "Server error." });
