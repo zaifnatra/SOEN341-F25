@@ -31,3 +31,6 @@ fetch('/user-profile')
     document.getElementById('profile-email').textContent = "Email";
     document.getElementById('profile-role').textContent = "Role";
   });
+
+  sessionStorage.removeItem("userRole");
+

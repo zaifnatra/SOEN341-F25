@@ -94,7 +94,8 @@ app.post('/login', async (req, res) => {
     req.session.user = {
       id: user._id,
       email: user.email,
-      username: user.username
+      username: user.username,
+      role: user.role || "student" //default role is student
     };
 
     res.json({ success: true });
@@ -172,13 +173,20 @@ app.get('/admindashboard', requireLogin, (req, res) => {
 /* ---------------- EVENT ROUTES ---------------- */
 
 app.post('/createEvent', async (req, res) => {
-  const { title, organizer, description, date, time, location, capacity, type } = req.body;
+  const { title, description, date, time, location, capacity, type } = req.body;
 
   if (!title || !date || !time || !location) {
     return res.status(400).json({ message: "Missing required fields." });
   }
 
   try {
+    // Ensure only logged-in users can create events
+    if (!req.session.user) {
+      return res.status(403).json({ message: "You must be logged in to create events." });
+    }
+
+    const organizer = req.session.user.email || req.session.user.username;
+
     const existing = await eventsCollection.findOne({ title });
     if (existing) {
       return res.status(400).json({ message: "Event title already exists." });
@@ -191,10 +199,10 @@ app.post('/createEvent', async (req, res) => {
       const qrImage = await QRCode.toDataURL(qrData);
       qrCodes.push({ code: qrData, image: qrImage });
     }
-    
-    const newEvent = {//event object in mongoDB
+
+    const newEvent = {
       title,
-      organizer: organizer || "Admin",
+      organizer, // <-- now uses logged-in organizer
       description,
       date,
       time,
@@ -209,12 +217,7 @@ app.post('/createEvent', async (req, res) => {
     };
 
     const insertResult = await eventsCollection.insertOne(newEvent);
-    console.log("New event added to MongoDB:");
-    console.log(JSON.stringify(newEvent, null, 2));
-    console.log(`ID MongoDB _id: ${insertResult.insertedId}`);
-
-
-    
+    console.log("New event added:", newEvent);
 
     res.status(201).json({ message: "Event created successfully!" });
   } catch (error) {
@@ -223,15 +226,35 @@ app.post('/createEvent', async (req, res) => {
   }
 });
 
+
 app.get('/events', async (req, res) => {
   try {
     const events = await eventsCollection.find().toArray();
+    console.log("Returning events:", events.length);
     res.json(events);
   } catch (error) {
     console.error("Error fetching events:", error);
     res.status(500).json({ message: "Error retrieving events." });
   }
 });
+
+
+//express route for organizer dashboard
+app.get('/organizerdashboard', requireLogin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'organizerdashboard.html'));
+});
+
+// DEBUG route: show only event titles and organizer fields
+app.get('/debug-events', async (req, res) => {
+  try {
+    const events = await eventsCollection.find({}, { projection: { title: 1, organizer: 1 } }).toArray();
+    res.json(events);
+  } catch (error) {
+    console.error("Error fetching debug events:", error);
+    res.status(500).json({ message: "Error fetching debug data." });
+  }
+});
+
 
 /* ---------------- SERVER ---------------- */
 const PORT = process.env.PORT || 3000;
