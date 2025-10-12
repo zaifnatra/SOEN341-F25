@@ -27,6 +27,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     dashboardLink.href = dashboardHref;
     dashboardLink.style.pointerEvents = "auto";
     dashboardLink.style.opacity = "1";
+
+    // Hide dashboard from student NavBar
+    if (userRole === "student") {
+      dashboardLink.style.display = "none";
+    }
+
+    //Hide dashboard from logged out users
   } catch (err) {
     console.warn("Role detection failed:", err);
     dashboardLink.style.display = "none";
