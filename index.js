@@ -69,19 +69,14 @@ app.get('/signin', (req, res) => {
 /* ---------------- USER ROUTES ---------------- */
 
 app.post('/createAccount', async (req, res) => {
-  const { email, username, password, role } = req.body;
+  const { email, username, password } = req.body;
   try {
     const existing = await usersCollection.findOne({ email });
     if (existing) {
       return res.send("Email already exists.");
     }
 
-    if (!role) {
-      return res.status(400).send("Role is required.");
-    }
-
-    //Storing values
-    const newUser = { email, username, password, role };
+    const newUser = { email, username, password };
     await usersCollection.insertOne(newUser);
     console.log("New User created:", newUser);
 
@@ -193,12 +188,6 @@ app.post('/createEvent', async (req, res) => {
     if (!req.session.user) {
       return res.status(403).json({ message: "You must be logged in to create events." });
     }
-
-    // Block non-adminn/organ from creating events
-    if (!["organizer", "admin"].includes(req.session.user.role)) {
-      return res.status(403).json({ message: "Only organizers and admins can create events." });
-    }
-
 
     const organizer = req.session.user.email || req.session.user.username;
 
