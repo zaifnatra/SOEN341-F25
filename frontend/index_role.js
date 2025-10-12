@@ -20,6 +20,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     if (!userRole) userRole = await getUserRoleFromServer();
 
+    // Hide dashboard from student NavBar
+    if (userRole === "student") {
+      dashboardLink.style.display = "none";
+    }
+
     let dashboardHref = "/account";
     if (userRole === "organizer") dashboardHref = "/organizerdashboard";
     else if (userRole === "admin") dashboardHref = "/admindashboard";
@@ -29,6 +34,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     dashboardLink.style.opacity = "1";
   } catch (err) {
     console.warn("Role detection failed:", err);
+    
+    //Hide dashboard from logged out users
     dashboardLink.style.display = "none";
   }
 });
