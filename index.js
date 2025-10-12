@@ -4,9 +4,13 @@ const path = require('path');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const { v4: uuidv4 } = require('uuid'); //DUMMY QR CODE
 const QRCode = require('qrcode'); //DUMMY QR CODE
+const archiver = require("archiver");
+const { ObjectId } = require("mongodb");
+const { Buffer } = require("buffer");
 
+// Directory where QR codes are saved
+const QR_CODES_DIR = path.join(__dirname, "qrcodes");
 const app = express();
 
 // Middleware
@@ -194,10 +198,10 @@ app.post('/createEvent', async (req, res) => {
 
     // Generate dynamic QR codes
     const qrCodes = [];
-    for (let i = 0; i < capacity; i++) {
-      const qrData = uuidv4();
+    for (let i = 1; i <= capacity; i++) {
+      const qrData = `${title} - ${i}/${capacity}`;
       const qrImage = await QRCode.toDataURL(qrData);
-      qrCodes.push({ code: qrData, image: qrImage });
+      qrCodes.push({ code: qrData, image: qrImage, scanned: false });
     }
 
     const newEvent = {
@@ -210,8 +214,7 @@ app.post('/createEvent', async (req, res) => {
       capacity: parseInt(capacity),
       type,
       qrCodes,
-      scannedTickets: [],
-      unscannedTickets: [],
+      scannedTickets: 0,
       attendanceRate: 0,
       remainingTickets: parseInt(capacity)
     };
@@ -238,22 +241,130 @@ app.get('/events', async (req, res) => {
   }
 });
 
+// Get events created by the logged-in organizer, including QR code images
+app.get('/my-events', requireLogin, async (req, res) => {
+  try {
+    const organizerEmail = req.session.user.email;
+    const myEvents = await eventsCollection
+      .find({ organizer: organizerEmail })
+      .project({
+        title: 1,
+        date: 1,
+        location: 1,
+        qrCodes: { code: 1, image: 1, scanned: 1 }
+      })
+      .toArray();
+
+    res.json(myEvents);
+  } catch (error) {
+    console.error("Error fetching organizer events:", error);
+    res.status(500).json({ message: "Error fetching your events." });
+  }
+});
+
+app.get("/download-qrcodes/:eventId", async (req, res) => {
+  try {
+    const eventId = req.params.eventId.trim();
+    console.log("[QR DOWNLOAD] Requested for eventId:", eventId);
+
+    if (!ObjectId.isValid(eventId)) {
+      return res.status(400).send("Invalid event ID.");
+    }
+
+    const event = await eventsCollection.findOne({ _id: new ObjectId(eventId) });
+    if (!event) {
+      return res.status(404).send("Event not found.");
+    }
+
+    const qrCodes = event.qrCodes || [];
+    if (qrCodes.length === 0) {
+      return res.status(404).send("No QR codes available for this event.");
+    }
+
+    // Prepare ZIP
+    const zipFileName = `${event.title.replace(/\s+/g, "_")}_QRCodes.zip`;
+    res.setHeader("Content-Disposition", `attachment; filename=${zipFileName}`);
+    res.setHeader("Content-Type", "application/zip");
+
+    const archive = archiver("zip", { zlib: { level: 9 } });
+    archive.pipe(res);
+
+    qrCodes.forEach((qr, index) => {
+      // qr.image is a base64 Data URL: "data:image/png;base64,..."
+      const base64Data = qr.image.split(",")[1];
+      const buffer = Buffer.from(base64Data, "base64");
+      const fileName = `${event.title.replace(/\s+/g, "_")}_ticket_${index + 1}.png`;
+      archive.append(buffer, { name: fileName });
+    });
+
+    archive.finalize();
+  } catch (err) {
+    console.error("[QR DOWNLOAD ERROR]", err);
+    res.status(500).send("Failed to prepare QR codes ZIP.");
+  }
+});
+
+app.post('/validate-ticket', async (req, res) => {
+  try {
+    const { qrData } = req.body; // text from decoded QR
+    if (!qrData) {
+      return res.status(400).json({ valid: false, message: "No QR data provided." });
+    }
+
+    // Find the event that contains this QR code
+    const event = await eventsCollection.findOne({ 
+      "qrCodes.code": qrData 
+    });
+
+    if (!event) {
+      return res.json({ valid: false, message: "Ticket not found." });
+    }
+
+    // Find the specific ticket in array
+    const ticket = event.qrCodes.find(q => q.code === qrData);
+
+    if (ticket.scanned) {
+      return res.json({ valid: false, message: "Ticket has already been used." });
+    }
+    
+        // Mark QR as scanned
+    await eventsCollection.updateOne(
+      { _id: new ObjectId(event._id), "qrCodes.code": qrData },
+      { $set: { "qrCodes.$.scanned": true } }
+    );
+        // Increment scannedTickets count
+    const updatedScannedCount = (event.scannedTickets || 0) + 1;
+    const newRemaining = event.capacity - updatedScannedCount;
+    const newAttendanceRate = (updatedScannedCount / event.capacity) * 100;
+
+    await eventsCollection.updateOne(
+      { _id: new ObjectId(event._id) },
+      {
+        $set: {
+          scannedTickets: updatedScannedCount,
+          remainingTickets: newRemaining,
+          attendanceRate: newAttendanceRate
+        }
+      }
+    );
+
+    res.json({
+      valid: true,
+      message: "Ticket is valid.",
+      eventTitle: event.title
+    });
+
+  } catch (error) {
+    console.error("Error validating ticket:", error);
+    res.status(500).json({ valid: false, message: "Server error during validation." });
+  }
+});
 
 //express route for organizer dashboard
 app.get('/organizerdashboard', requireLogin, (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'organizerdashboard.html'));
 });
 
-// DEBUG route: show only event titles and organizer fields
-app.get('/debug-events', async (req, res) => {
-  try {
-    const events = await eventsCollection.find({}, { projection: { title: 1, organizer: 1 } }).toArray();
-    res.json(events);
-  } catch (error) {
-    console.error("Error fetching debug events:", error);
-    res.status(500).json({ message: "Error fetching debug data." });
-  }
-});
 
 
 /* ---------------- SERVER ---------------- */
