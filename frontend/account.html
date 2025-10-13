@@ -52,5 +52,19 @@
   <script src="signout.js"></script>
   <script src="index_role.js"></script>
 
+  <!-- Hide create event from non-admin/organ users--> 
+   <script> 
+    fetch('/user-profile') 
+      .then(res => res.json()) 
+      .then(user => { 
+        if (!["organizer", "admin"].includes(user.role)) { 
+          document.querySelector('a[href="create-event.html"]').style.display = "none"; 
+        } 
+      }) 
+      .catch(() => { 
+        // not logged in 
+        document.querySelector('a[href="create-event.html"]').style.display = "none"; }); 
+    </script>
+
 </body>
 </html>
