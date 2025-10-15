@@ -1,5 +1,28 @@
 // createevent.js
 
+//Input Field Behaviour - Ticket Capacity
+const capacityInput = document.getElementById("event-capacity");
+if (capacityInput) {
+  // Allow only digits 0–9
+  capacityInput.addEventListener("keypress", (event) => {
+    if (!/[0-9]/.test(event.key)) {
+      event.preventDefault();
+    }
+  });
+
+  // Block paste and drag-drop of non-numeric text
+  capacityInput.addEventListener("paste", (event) => {
+    const pasted = event.clipboardData.getData("text");
+    if (!/^\d+$/.test(pasted)) event.preventDefault();
+  });
+
+  capacityInput.addEventListener("drop", (event) => {
+    const dropped = event.dataTransfer.getData("text");
+    if (!/^\d+$/.test(dropped)) event.preventDefault();
+  });
+}
+
+//Event Creation Process
 const createBtn = document.getElementById("create-btn");
 
 if (createBtn) {
@@ -12,12 +35,13 @@ if (createBtn) {
     const capacity = document.getElementById("event-capacity").value;
     const type = document.getElementById("event-type").value;
 
+    //Block empty required fields
     if (!title || !date || !time || !location || !capacity || !type) {
       alert("⚠️ Please fill in all required fields!");
       return;
     }
 
-    // Block invalid capacities
+    // Block invalid ticket capacities
     if (capacity <= 0) {
     alert("⚠️ Ticket capacity must be greater than 0!");
     return;
