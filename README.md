@@ -75,4 +75,4 @@ We identify three primary users: **Students**, **Organizers**, and **Administrat
 - JavaScript
 - Express.js
 - Node
-- MySQL
+- MongoDB
