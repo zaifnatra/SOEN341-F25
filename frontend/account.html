@@ -7,17 +7,14 @@
 </head>
 <body>
 
-  
   <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
 
-  
   <div class="navbar">
       <a href="index.html">HOME</a>
-       <a href="/account">ACCOUNT</a>
-       <a href="/eventspage">EVENTS</a>
-       <a id="dashboard-link" href="#">DASHBOARD</a>
-
-       <a href="help.html">HELP</a>
+      <a href="/account">ACCOUNT</a>
+      <a href="/eventspage">EVENTS</a>
+      <a id="dashboard-link" href="#">DASHBOARD</a>
+      <a href="help.html">HELP</a>
   </div>
 
   <div class="profile-box">
@@ -28,14 +25,12 @@
     <p id="profile-role">Role</p>
   </div>
 
-  
   <div class="options">
     <div class="option">
       <img src="calendar.png" alt="events">
       <p>MY EVENTS</p>
     </div>
 
-    
     <div class="option">
       <a href="create-event.html">
       <img src="create-event.png" alt="create event" >
@@ -44,27 +39,107 @@
     </div>
   </div>
 
-   <footer>
-   <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
- </footer>
+  <div id="organizer-request-section" style="display:none; margin-top:20px;">
+    <h3>Request Organizer Access</h3>
 
-  <div id="auth-btn-container"></div>
-  <script src="signout.js"></script>
-  <script src="index_role.js"></script>
+    <label>
+      <input type="radio" name="orgRequestType" value="new" checked>
+      I want to become a new Organizer (not linked to any event).
+    </label>
+    <br>
+    <label>
+      <input type="radio" name="orgRequestType" value="existing">
+      I want to become an Organizer for existing events:
+    </label>
 
-  <!-- Hide create event from non-admin/organ users--> 
-   <script> 
-    fetch('/user-profile') 
-      .then(res => res.json()) 
-      .then(user => { 
-        if (!["organizer", "admin"].includes(user.role)) { 
-          document.querySelector('a[href="create-event.html"]').style.display = "none"; 
-        } 
-      }) 
-      .catch(() => { 
-        // not logged in 
-        document.querySelector('a[href="create-event.html"]').style.display = "none"; }); 
-    </script>
+    <select id="existingEventsSelect" multiple size="5" disabled>
+      <!-- Multiple events selectable -->
+    </select>
+
+    <br><br>
+    <button id="submitOrgRequest">Submit Request</button>
+  </div>
+
+<script>
+  // Show section only if student
+  fetch('/user-profile')
+    .then(res => res.json())
+    .then(user => {
+      if (user.role === "student") {
+        document.getElementById('organizer-request-section').style.display = "block";
+        loadExistingEvents();
+      }
+    });
+
+  function loadExistingEvents() {
+    fetch('/events')
+      .then(res => res.json())
+      .then(events => {
+        const select = document.getElementById('existingEventsSelect');
+        events.forEach(event => {
+          const option = document.createElement('option');
+          option.value = event._id;
+          option.textContent = event.title;
+          select.appendChild(option);
+        });
+      });
+  }
+
+  // Radio buttons behavior
+  const radios = document.querySelectorAll('input[name="orgRequestType"]');
+  const eventsSelect = document.getElementById('existingEventsSelect');
+  radios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      eventsSelect.disabled = radio.value !== 'existing';
+    });
+  });
+
+  // Submit request
+  document.getElementById('submitOrgRequest').addEventListener('click', () => {
+    const type = document.querySelector('input[name="orgRequestType"]:checked').value;
+    const selectedOptions = Array.from(eventsSelect.selectedOptions).map(opt => opt.value);
+
+    let requests = [];
+    if (type === "new") {
+      requests.push({ type: "new", eventId: null });
+    } else if (type === "existing" && selectedOptions.length > 0) {
+      requests = selectedOptions.map(eventId => ({ type: "existing", eventId }));
+    } else {
+      return alert("Select at least one event.");
+    }
+
+    fetch('/request-organizer', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ requests })
+    })
+    .then(res => res.json())
+    .then(data => alert(data.message))
+    .catch(() => alert("Request failed"));
+  });
+</script>
+
+<footer>
+  <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
+</footer>
+
+<div id="auth-btn-container"></div>
+<script src="signout.js"></script>
+<script src="index_role.js"></script>
+
+<!-- Hide create event from non-admin/organ users--> 
+<script> 
+  fetch('/user-profile') 
+    .then(res => res.json()) 
+    .then(user => { 
+      if (!["organizer", "admin"].includes(user.role)) { 
+        document.querySelector('a[href="create-event.html"]').style.display = "none"; 
+      } 
+    }) 
+    .catch(() => { 
+      document.querySelector('a[href="create-event.html"]').style.display = "none"; 
+    }); 
+</script>
 
 </body>
 </html>
