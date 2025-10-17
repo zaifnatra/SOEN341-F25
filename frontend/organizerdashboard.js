@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
+  
   const eventsTableBody = document.getElementById("events-table-body");
   const exportCsvButton = document.getElementById("export-csv-button");
 
