@@ -1,5 +1,6 @@
 // createevent.js
 
+
 //Input Field Behaviour - Ticket Capacity
 const capacityInput = document.getElementById("event-capacity");
 if (capacityInput) {

@@ -1,4 +1,5 @@
 document.getElementById("validate-qr-button").addEventListener("click", async () => {
+  
   const fileInput = document.getElementById("qr-file-input");
   const resultDiv = document.getElementById("qr-result");
 

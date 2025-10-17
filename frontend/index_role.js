@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
+  
   const dashboardLink = document.getElementById("dashboard-link");
   if (!dashboardLink) return;
 

@@ -9,6 +9,7 @@ const archiver = require("archiver");
 const { ObjectId } = require("mongodb");
 const { Buffer } = require("buffer");
 
+
 // Directory where QR codes are saved
 const QR_CODES_DIR = path.join(__dirname, "qrcodes");
 const app = express();
