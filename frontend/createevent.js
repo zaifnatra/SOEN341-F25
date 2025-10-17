@@ -88,3 +88,63 @@ if (createBtn) {
     }
   });
 }
+document.addEventListener("DOMContentLoaded", async () => {
+  const eventsContainer = document.getElementById("my-events-list");
+
+  try {
+    const response = await fetch("/my-signedup-events");
+    const events = await response.json();
+
+    if (events.length === 0) {
+      eventsContainer.innerHTML = "<p>You haven't signed up for any events yet.</p>";
+      return;
+    }
+
+    eventsContainer.innerHTML = events.map((event, index) => `
+      <div class="event-card" id="event-card-${index}" style="border: 1px solid #ccc; padding: 10px; margin: 10px;">
+        <h3>${event.title}</h3>
+        <p><strong>Date:</strong> ${event.date} | <strong>Time:</strong> ${event.time}</p>
+        <p><strong>Location:</strong> ${event.location}</p>
+        <p><strong>Type:</strong> ${event.type}</p>
+        <p>${event.description}</p>
+        <button class="remove-btn" data-eventid="${event._id}" data-index="${index}" style="margin-top: 10px; background-color: red; color: white; border: none; padding: 5px 10px; cursor: pointer;">
+          Remove
+        </button>
+      </div>
+    `).join("");
+
+    // Add click event listeners
+    document.querySelectorAll(".remove-btn").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        const eventId = e.target.dataset.eventid;
+        const index = e.target.dataset.index;
+
+        try {
+          const res = await fetch("/remove-signedup-event", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ eventId })
+          });
+
+          const data = await res.json();
+
+          if (data.success) {
+            // Remove card from UI
+            const card = document.getElementById(`event-card-${index}`);
+            if (card) card.remove();
+            alert(data.message);
+          } else {
+            alert("Error: " + data.message);
+          }
+        } catch (err) {
+          console.error("Remove event failed:", err);
+          alert("Server error. Could not remove the event.");
+        }
+      });
+    });
+
+  } catch (error) {
+    console.error("Failed to load events:", error);
+    eventsContainer.innerHTML = "<p>Error loading your events. Please try again later.</p>";
+  }
+});

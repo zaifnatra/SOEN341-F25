@@ -818,3 +818,42 @@ input {
     padding: 20px;
   }
 }
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 20px auto;
+  padding: 10px;
+  background-color: #f7f7f7;
+  border-radius: 10px;
+  max-width: 900px;
+}
+
+.filter-bar label {
+  font-weight: bold;
+  color: #1e3a8a;
+}
+
+.filter-bar select,
+.filter-bar input[type="date"] {
+  padding: 5px 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.filter-bar button {
+  background-color: #1e3a8a;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.filter-bar button:hover {
+  background-color: #274aa3;
+}
+

@@ -365,6 +365,115 @@ app.get('/organizerdashboard', requireLogin, (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'organizerdashboard.html'));
 });
 
+// Student signs up for an event
+app.post('/signup-event', requireLogin, async (req, res) => {
+  try {
+    const { eventId } = req.body;
+    const userEmail = req.session.user.email;
+
+    if (!eventId) {
+      return res.status(400).json({ success: false, message: "Missing event ID." });
+    }
+
+    const event = await eventsCollection.findOne({ _id: new ObjectId(eventId) });
+    if (!event) {
+      return res.status(404).json({ success: false, message: "Event not found." });
+    }
+
+    // Check if event still has space
+    if (event.remainingTickets <= 0) {
+      return res.status(400).json({ success: false, message: "Event is full." });
+    }
+
+    // Prevent duplicate signups
+    const user = await usersCollection.findOne({ email: userEmail });
+    const myEvents = user.myEvents || [];
+    if (myEvents.includes(eventId)) {
+      return res.status(400).json({ success: false, message: "You already signed up for this event." });
+    }
+
+    // Add event to user's myEvents and update ticket count
+    await usersCollection.updateOne(
+      { email: userEmail },
+      { $addToSet: { myEvents: eventId } }
+    );
+
+    await eventsCollection.updateOne(
+      { _id: new ObjectId(eventId) },
+      { $inc: { remainingTickets: -1 } }
+    );
+
+    res.json({ success: true, message: `Successfully signed up for ${event.title}!` });
+  } catch (error) {
+    console.error("Error signing up for event:", error);
+    res.status(500).json({ success: false, message: "Server error signing up for event." });
+  }
+});
+// Get all events a logged-in user signed up for
+app.get('/my-signedup-events', requireLogin, async (req, res) => {
+  try {
+    const userEmail = req.session.user.email;
+
+    // Get user's signed-up event IDs
+    const user = await usersCollection.findOne({ email: userEmail });
+    if (!user || !user.myEvents || user.myEvents.length === 0) {
+      return res.json([]);
+    }
+
+    // Fetch event details for each ID
+    const eventIds = user.myEvents.map(id => new ObjectId(id));
+    const events = await eventsCollection
+      .find({ _id: { $in: eventIds } })
+      .project({
+        title: 1,
+        date: 1,
+        time: 1,
+        location: 1,
+        description: 1,
+        type: 1
+      })
+      .toArray();
+
+    res.json(events);
+  } catch (error) {
+    console.error("Error fetching signed-up events:", error);
+    res.status(500).json({ message: "Error fetching your events." });
+  }
+});
+
+// Remove signed-up event
+app.post('/remove-signedup-event', requireLogin, async (req, res) => {
+  try {
+    const { eventId } = req.body;
+    const userEmail = req.session.user.email;
+
+    if (!eventId) {
+      return res.status(400).json({ success: false, message: "Missing event ID." });
+    }
+
+    const user = await usersCollection.findOne({ email: userEmail });
+    if (!user || !user.myEvents || !user.myEvents.includes(eventId)) {
+      return res.status(404).json({ success: false, message: "Event not found in your list." });
+    }
+
+    // Remove event from user's myEvents
+    await usersCollection.updateOne(
+      { email: userEmail },
+      { $pull: { myEvents: eventId } }
+    );
+
+    // Increment the remaining tickets for the event
+    await eventsCollection.updateOne(
+      { _id: new ObjectId(eventId) },
+      { $inc: { remainingTickets: 1 } }
+    );
+
+    res.json({ success: true, message: "Successfully removed from your events." });
+  } catch (error) {
+    console.error("Error removing event:", error);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+});
 
 
 /* ---------------- SERVER ---------------- */
