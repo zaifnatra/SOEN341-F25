@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -28,6 +27,7 @@
 
   <div class="options">
     <div class="option">
+      <div class="option" id="my-events-option"></div>
       <img src="calendar.png" alt="events">
       <p>MY EVENTS</p>
     </div>
@@ -133,6 +133,17 @@
   fetch('/user-profile') 
     .then(res => res.json()) 
     .then(user => { 
+      
+    // If student, show organizer request and make MY EVENTS a link
+      if (user.role === "student") {
+        document.getElementById('organizer-request-section').style.display = "block";
+        loadExistingEvents();
+
+        // Make MY EVENTS a link to MyEvents.html
+        const myEventsOption = document.querySelector('.option');
+        myEventsOption.innerHTML = `<a href="MyEvents.html"><img src="calendar.png" alt="events"><p>MY EVENTS</p></a>`;
+      }
+
       if (!["organizer", "admin"].includes(user.role)) { 
         document.querySelector('a[href="create-event.html"]').style.display = "none"; 
       } 
