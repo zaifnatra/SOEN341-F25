@@ -47,7 +47,6 @@ if (createBtn) {
     return;
     }
 
-
     //Block Past Dates
     const selectedDate = new Date(date);
     const today = new Date();

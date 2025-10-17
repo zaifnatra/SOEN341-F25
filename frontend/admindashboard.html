@@ -80,36 +80,23 @@
     </table>
   </div>
 
-  <!-- Management -->
-  <div id="management" class="content">
-    <h2>Organizations</h2>
-    <table>
+<!-- Management -->
+<div id="management" class="content">
+  <h2>All User Accounts</h2>
+  <table id="all-users-table">
+    <thead>
       <tr>
-        <th>Organization</th>
-        <th>Members</th>
-        <th>Roles</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Role</th>
         <th>Actions</th>
       </tr>
-      <tr>
-        <td>Tech Club</td>
-        <td>25</td>
-        <td>President, VP, Member</td>
-        <td>
-          <button class="view">View</button>
-          <button class="edit">Edit</button>
-        </td>
-      </tr>
-      <tr>
-        <td>Art Society</td>
-        <td>12</td>
-        <td>Chair, Member</td>
-        <td>
-          <button class="view">View</button>
-          <button class="edit">Edit</button>
-        </td>
-      </tr>
-    </table>
-  </div>
+    </thead>
+    <tbody>
+      <!-- Filled dynamically -->
+    </tbody>
+  </table>
+</div>
 
    
     <div id="auth-btn-container"></div>

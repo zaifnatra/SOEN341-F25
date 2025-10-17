@@ -27,59 +27,95 @@
    <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
  </footer>
 
- <script src="index_role.js"></script>
  <script>
-    // Fetch and display all events from MongoDB
-    async function loadEvents() {
-      const eventsList = document.getElementById("events-list");
+  async function getUserRole() {
+    try {
+      const res = await fetch("/user-profile");
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.role || null;
+    } catch {
+      return null;
+    }
+  }
 
-      try {
-        const response = await fetch("/events");
-        const events = await response.json();
+  async function loadEvents() {
+    const eventsList = document.getElementById("events-list");
+    eventsList.innerHTML = "<p>Loading events...</p>";
 
-        if (!Array.isArray(events) || events.length === 0) {
-          eventsList.innerHTML = "<p>No events found.</p>";
-          return;
+    try {
+      const [role, response] = await Promise.all([
+        getUserRole(),
+        fetch("/events")
+      ]);
+      const events = await response.json();
+
+      if (!Array.isArray(events) || events.length === 0) {
+        eventsList.innerHTML = "<p>No events found.</p>";
+        return;
+      }
+
+      eventsList.innerHTML = "";
+
+      events.forEach((ev) => {
+        const card = document.createElement("div");
+        card.classList.add("event-card");
+
+        card.innerHTML = `
+          <h3>${ev.title}</h3>
+          <p><strong>Date:</strong> ${ev.date}</p>
+          <p><strong>Time:</strong> ${ev.time}</p>
+          <p><strong>Location:</strong> ${ev.location}</p>
+          <p>${ev.description || ""}</p>
+          <p><strong>Tickets:</strong> ${ev.capacity} | ${ev.type}</p>
+          <p><strong>Remaining:</strong> ${ev.remainingTickets ?? ev.capacity}</p>
+        `;
+
+        if (ev.qrCodes && ev.qrCodes.length > 0) {
+          const qrImg = document.createElement("img");
+          qrImg.src = ev.qrCodes[0].image;
+          qrImg.alt = "QR Code sample";
+          qrImg.classList.add("qr-sample");
+          qrImg.style.width = "100px";
+          qrImg.style.marginTop = "8px";
+          card.appendChild(qrImg);
         }
 
-        eventsList.innerHTML = "";
+        if (role === "admin") {
+          const delBtn = document.createElement("button");
+          delBtn.textContent = "Delete Event";
+          delBtn.classList.add("delete-btn");
+          delBtn.style.marginTop = "10px";
+          delBtn.onclick = async () => {
+            if (confirm(`Delete event "${ev.title}"?`)) {
+              try {
+                const res = await fetch(`/delete-event/${ev._id}`, {
+                  method: "DELETE",
+                });
+                const data = await res.json();
+                alert(data.message);
+                loadEvents(); // reload list
+              } catch (err) {
+                console.error("Error deleting event:", err);
+                alert("Failed to delete event.");
+              }
+            }
+          };
+          card.appendChild(delBtn);
+        }
 
-        events.forEach((ev) => {
-          const card = document.createElement("div");
-          card.classList.add("event-card");
-
-          card.innerHTML = `
-            <h3>${ev.title}</h3>
-            <p><strong>Date:</strong> ${ev.date}</p>
-            <p><strong>Time:</strong> ${ev.time}</p>
-            <p><strong>Location:</strong> ${ev.location}</p>
-            <p>${ev.description || ""}</p>
-            <p><strong>Tickets:</strong> ${ev.capacity} | ${ev.type}</p>
-            <p><strong>Remaining:</strong> ${ev.remainingTickets ?? ev.capacity}</p>
-          `;
-
-          // Optional: display first QR code thumbnail
-          if (ev.qrCodes && ev.qrCodes.length > 0) {
-            const qrImg = document.createElement("img");
-            qrImg.src = ev.qrCodes[0].image;
-            qrImg.alt = "QR Code sample";
-            qrImg.classList.add("qr-sample");
-            qrImg.style.width = "100px";
-            qrImg.style.marginTop = "8px";
-            card.appendChild(qrImg);
-          }
-
-          eventsList.appendChild(card);
-        });
-      } catch (error) {
-        console.error("Error loading events:", error);
-        eventsList.innerHTML = "<p>Error fetching events. Please try again later.</p>";
-      }
+        eventsList.appendChild(card);
+      });
+    } catch (error) {
+      console.error("Error loading events:", error);
+      eventsList.innerHTML = "<p>Error fetching events. Please try again later.</p>";
     }
+  }
 
-    window.onload = loadEvents;
-  </script>
+  window.onload = loadEvents;
+</script>
 
+<script src="index_role.js"></script>
 <script src="createevent.js"></script>
 <script src="signout.js"></script>
 </body>
