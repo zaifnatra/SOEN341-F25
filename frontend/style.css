@@ -723,3 +723,98 @@ main h1 {
 .quick-actions .qr-button:hover {
   background-color: #1d4ed8;
 }
+
+/* ===== PAYMENT PAGE STYLES ===== */
+.payment-body {
+  background-color: #f8f8fa;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+.payment-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.payment-container {
+  background-color: #fff;
+  width: 420px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  text-align: left;
+}
+
+.payment-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #083d8c;
+}
+
+.event-summary {
+  background-color: #f2f2f2;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.event-summary p {
+  margin: 6px 0;
+}
+
+label {
+  font-weight: bold;
+  display: block;
+  margin-top: 12px;
+  color: #083d8c;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+}
+
+.btn {
+  width: 100%;
+  margin-top: 25px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.2s ease-in-out;
+}
+
+.btn:hover {
+  background-color: #083d8c;
+}
+
+.back-link {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.back-link a {
+  text-decoration: none;
+  color: #007bff;
+}
+
+.back-link a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .payment-container {
+    width: 90%;
+    padding: 20px;
+  }
+}
