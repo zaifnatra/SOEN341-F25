@@ -391,6 +391,32 @@ app.get('/events', async (req, res) => {
   }
 });
 
+// Delete an event (admin only)
+app.delete("/delete-event/:eventId", async (req, res) => {
+  try {
+    if (!req.session.user || req.session.user.role !== "admin") {
+      return res.status(403).json({ message: "Unauthorized: admin only." });
+    }
+
+    const eventId = req.params.eventId;
+    if (!ObjectId.isValid(eventId)) {
+      return res.status(400).json({ message: "Invalid event ID." });
+    }
+
+    const result = await eventsCollection.deleteOne({ _id: new ObjectId(eventId) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "Event not found." });
+    }
+
+    res.json({ message: "Event deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting event:", error);
+    res.status(500).json({ message: "Server error deleting event." });
+  }
+});
+
+
 app.get('/my-events', requireLogin, async (req, res) => {
   try {
     const organizerEmail = req.session.user.email;
@@ -515,6 +541,35 @@ app.get('/organizerdashboard', requireLogin, (req, res) => {
 });
 
 
+/* ---------------- ADMIN USER MANAGEMENT ---------------- */
+
+// Fetch all users (for the Organizations tab)
+app.get("/all-users", async (req, res) => {
+  try {
+    const users = await usersCollection.find({}, { projection: { password: 0 } }).toArray(); // hide passwords
+    res.json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ message: "Error retrieving users." });
+  }
+});
+
+// Delete a specific user by ID
+app.delete("/delete-user/:userId", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const result = await usersCollection.deleteOne({ _id: new ObjectId(userId) });
+
+    if (result.deletedCount === 1) {
+      res.json({ success: true, message: "User deleted successfully." });
+    } else {
+      res.status(404).json({ success: false, message: "User not found." });
+    }
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ success: false, message: "Error deleting user." });
+  }
+});
 
 /* ---------------- SERVER ---------------- */
 const PORT = process.env.PORT || 3000;
