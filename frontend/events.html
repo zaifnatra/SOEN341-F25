@@ -79,7 +79,41 @@
           qrImg.classList.add("qr-sample");
           qrImg.style.width = "100px";
           qrImg.style.marginTop = "8px";
+          qrImg.style.display = "block";
+          qrImg.style.margin = "10px auto 5px";
           card.appendChild(qrImg);
+        }
+
+        // --- STUDENT SIGNUP BUTTON ---
+        if (role === "student") {
+          const signUpBtn = document.createElement("button");
+          signUpBtn.textContent = "Sign Up";
+          signUpBtn.classList.add("signup-btn");
+          signUpBtn.style.display = "block";
+          signUpBtn.style.margin = "0 auto";
+
+          signUpBtn.addEventListener("click", async () => {
+            if (ev.type.toLowerCase() === "free") {
+              // Free event → auto register
+              try {
+                const res = await fetch("/signup-event", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ eventId: ev._id })
+                });
+                const data = await res.json();
+                alert(data.message);
+              } catch (err) {
+                console.error("Error signing up:", err);
+                alert("Error signing up for the event.");
+              }
+            } else {
+              // Paid event → redirect to payment
+              window.location.href = `/payment.html?eventId=${ev._id}`;
+            }
+          });
+
+          card.appendChild(signUpBtn);
         }
 
         if (role === "admin") {
