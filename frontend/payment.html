@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Payment</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="payment-container">
+    <h2>Event Payment</h2>
+
+    <!-- Event summary -->
+    <div class="event-summary" id="eventSummary">
+      <p><strong>Event:</strong> <span id="eventName">Name</span></p>
+      <p><strong>Date:</strong> <span id="eventDate">Date</span></p>
+      <p><strong>Price:</strong> $<span id="eventPrice">Price</span></p>
+    </div>
+
+    <!-- Payment form -->
+    <form id="paymentForm">
+      <label for="name">Full Name</label>
+      <input type="text" id="name" placeholder="Enter your full name" required>
+
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="Enter your email" required>
+
+      <label for="cardNumber">Card Number</label>
+      <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required>
+
+      <label for="expiry">Expiry Date (MM/YY)</label>
+      <input type="text" id="expiry" placeholder="MM/YY" maxlength="5" required>
+
+      <label for="cvv">CVV</label>
+      <input type="password" id="cvv" placeholder="123" maxlength="4" required>
+
+      <button type="submit" class="btn">Confirm Payment</button>
+    </form>
+
+    <div class="back-link">
+      <a href="events.html">← Back to Events</a>
+    </div>
+  </div>
+
+  <script>
+    // Example: load event info dynamically from query parameters
+    const params = new URLSearchParams(window.location.search);
+    const eventName = params.get("event");
+    const price = params.get("price");
+    const date = params.get("date");
+
+    if (eventName) document.getElementById("eventName").textContent = eventName;
+    if (price) document.getElementById("eventPrice").textContent = price;
+    if (date) document.getElementById("eventDate").textContent = date;
+
+    // Handle fake payment
+    document.getElementById("paymentForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      alert("Payment successful! Your ticket has been issued.");
+      window.location.href = "my-events.html"; // Redirect after payment
+    });
+  </script>
+</body>
+</html>
