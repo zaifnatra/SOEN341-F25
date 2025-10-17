@@ -23,9 +23,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!res.ok) throw new Error("Failed to fetch events");
     const events = await res.json();
 
-    const myEvents = events.filter(
-      (e) => e.organizer === organizerEmail || e.organizer === userData.username
-    );
+   const myEvents = events.filter((e) => {
+  if (Array.isArray(e.organizer)) {
+    return e.organizer.includes(organizerEmail) || e.organizer.includes(userData.username);
+  }
+  return e.organizer === organizerEmail || e.organizer === userData.username;
+});
+
 
     if (myEvents.length === 0) {
       eventsTableBody.innerHTML = `<tr><td colspan="7">No events found for ${organizerEmail}.</td></tr>`;

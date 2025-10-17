@@ -76,7 +76,7 @@ app.post('/createAccount', async (req, res) => {
       return res.send("Email already exists.");
     }
 
-    const newUser = { email, username, password };
+    const newUser = { email, username, password, role: "student" };
     await usersCollection.insertOne(newUser);
     console.log("New User created:", newUser);
 
@@ -174,6 +174,156 @@ app.get('/admindashboard', requireLogin, (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'admindashboard.html'));
 });
 
+app.post('/request-organizer', async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ message: "Not logged in" });
+  }
+
+  const { requests } = req.body; // array of { type, eventId }
+  const userId = req.session.user.id;
+
+  if (!requests || !Array.isArray(requests) || requests.length === 0) {
+    return res.status(400).json({ message: "No requests provided." });
+  }
+
+  try {
+    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+
+    if (!user.organizerRequests) {
+      user.organizerRequests = [];
+    }
+
+    // Add each request as a separate entry
+    requests.forEach(reqItem => {
+      user.organizerRequests.push({
+        type: reqItem.type,
+        eventId: reqItem.eventId || null,
+        status: "pending",
+        submittedAt: new Date()
+      });
+    });
+
+    await usersCollection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { organizerRequests: user.organizerRequests } }
+    );
+
+    res.json({ message: "Organizer requests submitted!" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error submitting requests" });
+  }
+});
+
+
+app.get('/pending-organizers', async (req, res) => {
+  try {
+    // Flatten each request into individual objects for admin dashboard
+    const users = await usersCollection.find({ "organizerRequests.status": "pending" }).toArray();
+    const pendingRequests = [];
+
+    users.forEach(user => {
+      if (Array.isArray(user.organizerRequests)) {
+        user.organizerRequests.forEach(reqItem => {
+          if (reqItem.status === "pending") {
+            pendingRequests.push({
+              userId: user._id,
+              username: user.username,
+              email: user.email,
+              type: reqItem.type,
+              eventId: reqItem.eventId,
+              submittedAt: reqItem.submittedAt
+            });
+          }
+        });
+      }
+    });
+
+    res.json(pendingRequests);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error retrieving pending requests" });
+  }
+});
+
+
+app.post('/approve-organizer', async (req, res) => {
+  const { userId, eventId } = req.body; // eventId identifies which request to approve
+  try {
+    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+    if (!user || !user.organizerRequests) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    const requestIndex = user.organizerRequests.findIndex(r =>
+      r.status === "pending" && r.eventId === (eventId || null)
+    );
+
+    if (requestIndex === -1) return res.status(404).json({ message: "Request not found" });
+
+    const request = user.organizerRequests[requestIndex];
+
+    // Update role
+    const newRole = "organizer";
+    await usersCollection.updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $set: {
+          role: newRole,
+          [`organizerRequests.${requestIndex}.status`]: "approved"
+        }
+      }
+    );
+
+    // If it's linked to an existing event, update event organizers
+    if (request.type === "existing" && request.eventId) {
+      const event = await eventsCollection.findOne({ _id: new ObjectId(request.eventId) });
+      if (event) {
+        let updatedOrganizers = [];
+        if (typeof event.organizer === "string") updatedOrganizers = [event.organizer, user.email];
+        else if (Array.isArray(event.organizer)) updatedOrganizers = [...new Set([...event.organizer, user.email])];
+        else updatedOrganizers = [user.email];
+
+        await eventsCollection.updateOne(
+          { _id: new ObjectId(request.eventId) },
+          { $set: { organizer: updatedOrganizers } }
+        );
+      }
+    }
+
+    res.json({ message: "Approved" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Approval failed" });
+  }
+});
+
+
+app.post('/reject-organizer', async (req, res) => {
+  const { userId, eventId } = req.body;
+  try {
+    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+    if (!user || !user.organizerRequests) return res.status(404).json({ message: "Request not found" });
+
+    const requestIndex = user.organizerRequests.findIndex(r =>
+      r.status === "pending" && r.eventId === (eventId || null)
+    );
+    if (requestIndex === -1) return res.status(404).json({ message: "Request not found" });
+
+    await usersCollection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { [`organizerRequests.${requestIndex}.status`]: "rejected" } }
+    );
+
+    res.json({ message: "Rejected" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Rejection failed" });
+  }
+});
+
+
+
 /* ---------------- EVENT ROUTES ---------------- */
 
 app.post('/createEvent', async (req, res) => {
@@ -206,7 +356,7 @@ app.post('/createEvent', async (req, res) => {
 
     const newEvent = {
       title,
-      organizer, // <-- now uses logged-in organizer
+      organizer: [organizer],
       description,
       date,
       time,
@@ -241,12 +391,11 @@ app.get('/events', async (req, res) => {
   }
 });
 
-// Get events created by the logged-in organizer, including QR code images
 app.get('/my-events', requireLogin, async (req, res) => {
   try {
     const organizerEmail = req.session.user.email;
     const myEvents = await eventsCollection
-      .find({ organizer: organizerEmail })
+      .find({ organizer: { $in: [organizerEmail] } })
       .project({
         title: 1,
         date: 1,

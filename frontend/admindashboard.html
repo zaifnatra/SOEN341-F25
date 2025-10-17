@@ -27,31 +27,23 @@
   <!-- Oversight -->
   <div id="oversight" class="content active">
     <h2>Pending Organizer Accounts</h2>
-    <table>
-      <tr>
-        <th>Organizer Name</th>
-        <th>Date/Time</th>
-        <th>Actions</th>
-      </tr>
-      <tr>
-        <td>John Doe</td>
-        <td>2025-10-02 14:30</td>
-        <td>
-          <button class="approve" onclick="approveRow(this)">Approve</button>
-          <button class="reject" onclick="rejectRow(this)">Reject</button>
-          <button class="view">View Details</button>
-        </td>
-      </tr>
-      <tr>
-        <td>Jane Smith</td>
-        <td>2025-10-02 15:10</td>
-        <td>
-          <button class="approve" onclick="approveRow(this)">Approve</button>
-          <button class="reject" onclick="rejectRow(this)">Reject</button>
-          <button class="view">View Details</button>
-        </td>
-      </tr>
-    </table>
+    <h2>Pending Organizer Accounts</h2>
+<table id="pending-organizers-table">
+  <thead>
+    <tr>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Request Type</th>
+      <th>Event (if any)</th>
+      <th>Date Submitted</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Filled dynamically -->
+  </tbody>
+</table>
+
   </div>
 
   <!-- Analytics -->
