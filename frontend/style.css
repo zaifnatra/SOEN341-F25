@@ -818,3 +818,80 @@ input {
     padding: 20px;
   }
 }
+.fancy-btn {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  display: inline-block;
+  text-align: center;
+  font-weight: 600;
+  padding: 0.4em 1.2em;
+  border: 2px solid #1a5ed3;
+  border-radius: 4px;
+  position: relative;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.15);
+  color: #1a5ed3;
+  text-decoration: none;
+  transition: 0.3s ease all;
+  z-index: 1;
+  background: transparent;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.fancy-btn:before {
+  transition: 0.4s all ease;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  right: 50%;
+  bottom: 0;
+  opacity: 0;
+  content: "";
+  background-color: #1a5ed3;
+  z-index: -1;
+}
+
+.fancy-btn:hover,
+.fancy-btn:focus {
+  color: white;
+}
+
+.fancy-btn:hover:before,
+.fancy-btn:focus:before {
+  left: 0;
+  right: 0;
+  opacity: 1;
+}
+
+.fancy-btn:active {
+  transform: scale(0.95);
+}
+
+.signup-btn {
+  padding: 10px 20px;
+  text-transform: uppercase;
+  border-radius: 8px;
+  font-size: 17px;
+  font-weight: 500;
+  color: #05050580;
+  text-shadow: none;
+  background: transparent;
+  cursor: pointer;
+  box-shadow: transparent;
+  border: 1px solid #05050580;
+  transition: 0.5s ease;
+  user-select: none;
+  display: block;
+  margin: 0 auto;
+}
+
+.signup-btn:hover,
+.signup-btn:focus {
+  color: #ffffff;
+  background: #008cff;
+  border: 1px solid #008cff;
+  text-shadow: 0 0 5px #ffffff, 0 0 10px #ffffff, 0 0 20px #ffffff;
+  box-shadow: 0 0 5px #008cff, 0 0 20px #008cff, 0 0 50px #008cff, 0 0 100px #008cff;
+}
+
