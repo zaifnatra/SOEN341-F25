@@ -11,7 +11,7 @@
     <div class="payment-container">
       <h2>Event Payment</h2>
 
-      <!-- Event summary section -->
+      <!-- Event summary -->
       <div class="event-summary" id="eventSummary">
         <p><strong>Event:</strong> <span id="eventName">Event Title</span></p>
         <p><strong>Date:</strong> <span id="eventDate">Date</span></p>
@@ -19,21 +19,21 @@
       </div>
 
       <!-- Payment form -->
-      <form id="paymentForm">
+      <form id="paymentForm" novalidate>
         <label for="name">Full Name</label>
-        <input type="text" id="name" placeholder="Enter your full name" required />
+        <input type="text" id="name" placeholder="Enter your full name" required>
 
         <label for="email">Email</label>
-        <input type="email" id="email" placeholder="Enter your email" required />
+        <input type="email" id="email" placeholder="Enter your email" required>
 
         <label for="cardNumber">Card Number</label>
-        <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" required />
+        <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" required maxlength="19">
 
         <label for="expiry">Expiry Date (MM/YY)</label>
-        <input type="text" id="expiry" placeholder="MM/YY" required />
+        <input type="text" id="expiry" placeholder="MM/YY" required maxlength="5">
 
         <label for="cvv">CVV</label>
-        <input type="text" id="cvv" placeholder="123" required />
+        <input type="text" id="cvv" placeholder="123" required maxlength="3">
 
         <button type="submit" class="btn">Confirm Payment</button>
       </form>
@@ -44,6 +44,7 @@
     </div>
   </div>
 
+  <!-- External JS file -->
   <script src="payment.js"></script>
 </body>
 </html>
