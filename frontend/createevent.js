@@ -1,6 +1,5 @@
 // createevent.js
 
-
 //Input Field Behaviour - Ticket Capacity
 const capacityInput = document.getElementById("event-capacity");
 if (capacityInput) {
@@ -44,8 +43,8 @@ if (createBtn) {
 
     // Block invalid ticket capacities
     if (capacity <= 0) {
-    alert("⚠️ Ticket capacity must be greater than 0!");
-    return;
+      alert("⚠️ Ticket capacity must be greater than 0!");
+      return;
     }
 
     //Block Past Dates
@@ -53,8 +52,8 @@ if (createBtn) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (selectedDate < today) {
-    alert("⚠️ You cannot select a past date for the event!");
-    return;
+      alert("⚠️ You cannot select a past date for the event!");
+      return;
     }
 
     try {
@@ -84,7 +83,7 @@ if (createBtn) {
       }
     } catch (error) {
       console.error("Error sending event data:", error);
-      alert(" Could not connect to the server.");
+      alert("Could not connect to the server.");
     }
   });
 }
@@ -122,6 +121,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             data-time="${event.time}"
             data-location="${event.location}">
             Save to Calendar
+          </button>
+          <button class="fancy-btn ticket-btn" data-eventid="${event._id}">
+            Receive Digital Ticket
           </button>
         </div>
       </div>
@@ -185,6 +187,32 @@ document.addEventListener("DOMContentLoaded", async () => {
           `&location=${encodeURIComponent(location)}`;
 
         window.open(gcalUrl, "_blank");
+      });
+    });
+
+    // Receive Digital Ticket functionality
+    document.querySelectorAll(".ticket-btn").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        const eventId = e.target.dataset.eventid;
+        try {
+          const response = await fetch(`/generate-ticket/${eventId}`);
+          if (!response.ok) {
+            alert("Failed to generate ticket.");
+            return;
+          }
+
+          // Get PDF blob and download
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "ticket.pdf";
+          a.click();
+          window.URL.revokeObjectURL(url);
+        } catch (error) {
+          console.error("Error generating ticket:", error);
+          alert("Error generating your digital ticket.");
+        }
       });
     });
   } catch (error) {
