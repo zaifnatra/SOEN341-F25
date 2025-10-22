@@ -895,3 +895,36 @@ input {
   box-shadow: 0 0 5px #008cff, 0 0 20px #008cff, 0 0 50px #008cff, 0 0 100px #008cff;
 }
 
+
+.filter-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px;
+  background-color: #f4f4f4;
+  border-radius: 8px;
+  margin: 15px auto;
+  width: 90%;
+  max-width: 1000px;
+  flex-wrap: wrap; /* Allows filters to wrap on small screens */
+}
+
+.filter-container input,
+.filter-container select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.filter-button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  background-color: #004a99; /* Example color */
+  color: white;
+  cursor: pointer;
+}
+
+.filter-button:hover {
+  background-color: #003366;
+}
