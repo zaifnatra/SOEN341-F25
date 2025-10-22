@@ -20,6 +20,40 @@
 
   <div id="auth-btn-container"></div>
 
+  <!-- Filter controls -->
+  <div class="filter-container" style="max-width: 900px; margin: 30px auto; padding: 20px; background: #f1f1f1; border-radius: 15px;">
+    <h3 style="text-align: center; color: #083d8c; margin-bottom: 20px;">Filter Events</h3>
+    <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+      <div style="flex: 1; min-width: 200px;">
+        <label for="filter-date" style="display: block; margin-bottom: 5px; font-weight: bold; color: #083d8c;">Date:</label>
+        <input type="date" id="filter-date" style="width: 100%; padding: 10px; border: 2px solid #ccc; border-radius: 8px; font-size: 14px;">
+      </div>
+      <div style="flex: 1; min-width: 200px;">
+        <label for="filter-category" style="display: block; margin-bottom: 5px; font-weight: bold; color: #083d8c;">Category:</label>
+        <select id="filter-category" style="width: 100%; padding: 10px; border: 2px solid #ccc; border-radius: 8px; font-size: 14px; background: white; color: #083d8c;">
+          <option value="">All Categories</option>
+          <option value="Academic">Academic</option>
+          <option value="Social">Social</option>
+          <option value="Sports">Sports</option>
+          <option value="Career">Career</option>
+          <option value="Cultural">Cultural</option>
+          <option value="Technology">Technology</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div style="flex: 1; min-width: 200px;">
+        <label for="filter-organization" style="display: block; margin-bottom: 5px; font-weight: bold; color: #083d8c;">Organization:</label>
+        <select id="filter-organization" style="width: 100%; padding: 10px; border: 2px solid #ccc; border-radius: 8px; font-size: 14px; background: white; color: #083d8c;">
+          <option value="">All Organizations</option>
+        </select>
+      </div>
+    </div>
+    <div style="text-align: center; margin-top: 20px;">
+      <button id="apply-filters" style="padding: 12px 30px; background-color: #083d8c; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-right: 10px;">Apply Filters</button>
+      <button id="clear-filters" style="padding: 12px 30px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold;">Clear Filters</button>
+    </div>
+  </div>
+
   <div class="events-container" id="events-list">
     <p>Loading events...</p>
   </div>
@@ -29,6 +63,9 @@
  </footer>
 
  <script>
+  let allEvents = []; // Store all events
+  let uniqueOrganizations = new Set(); // Store unique organizations
+
   async function getUserRole() {
     try {
       const res = await fetch("/user-profile");
@@ -56,96 +93,182 @@
         return;
       }
 
-      eventsList.innerHTML = "";
+      allEvents = events;
 
-      events.forEach((ev) => {
-        const card = document.createElement("div");
-        card.classList.add("event-card");
-
-        card.innerHTML = `
-          <h3>${ev.title}</h3>
-          <p><strong>Date:</strong> ${ev.date}</p>
-          <p><strong>Time:</strong> ${ev.time}</p>
-          <p><strong>Location:</strong> ${ev.location}</p>
-          <p>${ev.description || ""}</p>
-          <p><strong>Tickets:</strong> ${ev.capacity} | ${ev.type}</p>
-          <p><strong>Remaining:</strong> ${ev.remainingTickets ?? ev.capacity}</p>
-        `;
-
-        if (ev.qrCodes && ev.qrCodes.length > 0) {
-          const qrImg = document.createElement("img");
-          qrImg.src = ev.qrCodes[0].image;
-          qrImg.alt = "QR Code sample";
-          qrImg.classList.add("qr-sample");
-          qrImg.style.width = "100px";
-          qrImg.style.marginTop = "8px";
-          qrImg.style.display = "block";
-          qrImg.style.margin = "10px auto 5px";
-          card.appendChild(qrImg);
+      // Populate unique organizations
+      uniqueOrganizations.clear();
+      events.forEach(ev => {
+        if (Array.isArray(ev.organizer)) {
+          ev.organizer.forEach(org => uniqueOrganizations.add(org));
+        } else if (ev.organizer) {
+          uniqueOrganizations.add(ev.organizer);
         }
-
-        // --- STUDENT SIGNUP BUTTON ---
-        if (role === "student") {
-          const signUpBtn = document.createElement("button");
-          signUpBtn.textContent = "Sign Up";
-          signUpBtn.classList.add("signup-btn");
-          signUpBtn.style.display = "block";
-          signUpBtn.style.margin = "0 auto";
-
-          signUpBtn.addEventListener("click", async () => {
-            if (ev.type.toLowerCase() === "free") {
-              // Free event → auto register
-              try {
-                const res = await fetch("/signup-event", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ eventId: ev._id })
-                });
-                const data = await res.json();
-                alert(data.message);
-              } catch (err) {
-                console.error("Error signing up:", err);
-                alert("Error signing up for the event.");
-              }
-            } else {
-              // Paid event → redirect to payment
-              window.location.href = `/payment.html?eventId=${ev._id}`;
-            }
-          });
-
-          card.appendChild(signUpBtn);
-        }
-
-        if (role === "admin") {
-          const delBtn = document.createElement("button");
-          delBtn.textContent = "Delete Event";
-          delBtn.classList.add("delete-btn");
-          delBtn.style.marginTop = "10px";
-          delBtn.onclick = async () => {
-            if (confirm(`Delete event "${ev.title}"?`)) {
-              try {
-                const res = await fetch(`/delete-event/${ev._id}`, {
-                  method: "DELETE",
-                });
-                const data = await res.json();
-                alert(data.message);
-                loadEvents(); // reload list
-              } catch (err) {
-                console.error("Error deleting event:", err);
-                alert("Failed to delete event.");
-              }
-            }
-          };
-          card.appendChild(delBtn);
-        }
-
-        eventsList.appendChild(card);
       });
+
+      // Populate organization dropdown
+      const orgSelect = document.getElementById("filter-organization");
+      orgSelect.innerHTML = '<option value="">All Organizations</option>';
+      Array.from(uniqueOrganizations).sort().forEach(org => {
+        const option = document.createElement("option");
+        option.value = org;
+        option.textContent = org;
+        orgSelect.appendChild(option);
+      });
+
+      displayEvents(events, role);
     } catch (error) {
       console.error("Error loading events:", error);
       eventsList.innerHTML = "<p>Error fetching events. Please try again later.</p>";
     }
   }
+
+  function displayEvents(events, role) {
+    const eventsList = document.getElementById("events-list");
+    eventsList.innerHTML = "";
+
+    if (events.length === 0) {
+      eventsList.innerHTML = "<p>No events match the selected filters.</p>";
+      return;
+    }
+
+    events.forEach((ev) => {
+      const card = document.createElement("div");
+      card.classList.add("event-card");
+
+      const organizerDisplay = Array.isArray(ev.organizer) ? ev.organizer.join(", ") : ev.organizer;
+      const categoryDisplay = ev.category || "Other";
+
+      card.innerHTML = `
+        <h3>${ev.title}</h3>
+        <p><strong>Date:</strong> ${ev.date}</p>
+        <p><strong>Time:</strong> ${ev.time}</p>
+        <p><strong>Location:</strong> ${ev.location}</p>
+        <p><strong>Category:</strong> ${categoryDisplay}</p>
+        <p><strong>Organization:</strong> ${organizerDisplay}</p>
+        <p>${ev.description || ""}</p>
+        <p><strong>Tickets:</strong> ${ev.capacity} | ${ev.type}</p>
+        <p><strong>Remaining:</strong> ${ev.remainingTickets ?? ev.capacity}</p>
+      `;
+
+      if (ev.qrCodes && ev.qrCodes.length > 0) {
+        const qrImg = document.createElement("img");
+        qrImg.src = ev.qrCodes[0].image;
+        qrImg.alt = "QR Code sample";
+        qrImg.classList.add("qr-sample");
+        qrImg.style.width = "100px";
+        qrImg.style.marginTop = "8px";
+        qrImg.style.display = "block";
+        qrImg.style.margin = "10px auto 5px";
+        card.appendChild(qrImg);
+      }
+
+      // --- STUDENT SIGNUP BUTTON ---
+      if (role === "student") {
+        const signUpBtn = document.createElement("button");
+        signUpBtn.textContent = "Sign Up";
+        signUpBtn.classList.add("signup-btn");
+        signUpBtn.style.display = "block";
+        signUpBtn.style.margin = "0 auto";
+
+        signUpBtn.addEventListener("click", async () => {
+          if (ev.type.toLowerCase() === "free") {
+            // Free event → auto register
+            try {
+              const res = await fetch("/signup-event", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ eventId: ev._id })
+              });
+              const data = await res.json();
+              alert(data.message);
+            } catch (err) {
+              console.error("Error signing up:", err);
+              alert("Error signing up for the event.");
+            }
+          } else {
+            // Paid event → redirect to payment
+            window.location.href = `/payment.html?eventId=${ev._id}`;
+          }
+        });
+
+        card.appendChild(signUpBtn);
+      }
+
+      if (role === "admin") {
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "Delete Event";
+        delBtn.classList.add("delete-btn");
+        delBtn.style.marginTop = "10px";
+        delBtn.onclick = async () => {
+          if (confirm(`Delete event "${ev.title}"?`)) {
+            try {
+              const res = await fetch(`/delete-event/${ev._id}`, {
+                method: "DELETE",
+              });
+              const data = await res.json();
+              alert(data.message);
+              loadEvents(); // reload list
+            } catch (err) {
+              console.error("Error deleting event:", err);
+              alert("Failed to delete event.");
+            }
+          }
+        };
+        card.appendChild(delBtn);
+      }
+
+      eventsList.appendChild(card);
+    });
+  }
+
+  function applyFilters() {
+    const filterDate = document.getElementById("filter-date").value;
+    const filterCategory = document.getElementById("filter-category").value;
+    const filterOrganization = document.getElementById("filter-organization").value;
+
+    let filteredEvents = allEvents;
+
+    // Filter by date
+    if (filterDate) {
+      filteredEvents = filteredEvents.filter(ev => ev.date === filterDate);
+    }
+
+    // Filter by category
+    if (filterCategory) {
+      filteredEvents = filteredEvents.filter(ev => {
+        const eventCategory = ev.category || "Other";
+        return eventCategory === filterCategory;
+      });
+    }
+
+    // Filter by organization
+    if (filterOrganization) {
+      filteredEvents = filteredEvents.filter(ev => {
+        if (Array.isArray(ev.organizer)) {
+          return ev.organizer.includes(filterOrganization);
+        } else {
+          return ev.organizer === filterOrganization;
+        }
+      });
+    }
+
+    getUserRole().then(role => {
+      displayEvents(filteredEvents, role);
+    });
+  }
+
+  function clearFilters() {
+    document.getElementById("filter-date").value = "";
+    document.getElementById("filter-category").value = "";
+    document.getElementById("filter-organization").value = "";
+    getUserRole().then(role => {
+      displayEvents(allEvents, role);
+    });
+  }
+
+  // Event listeners for filter buttons
+  document.getElementById("apply-filters").addEventListener("click", applyFilters);
+  document.getElementById("clear-filters").addEventListener("click", clearFilters);
 
   window.onload = loadEvents;
 </script>

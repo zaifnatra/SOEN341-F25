@@ -35,9 +35,10 @@ if (createBtn) {
     const location = document.getElementById("event-location").value.trim();
     const capacity = document.getElementById("event-capacity").value;
     const type = document.getElementById("event-type").value;
+    const category = document.getElementById("event-category").value;
 
     //Block empty required fields
-    if (!title || !date || !time || !location || !capacity || !type) {
+    if (!title || !date || !time || !location || !capacity || !type || !category) {
       alert("⚠️ Please fill in all required fields!");
       return;
     }
@@ -69,6 +70,7 @@ if (createBtn) {
           location,
           capacity,
           type,
+          category,
         }),
       });
 

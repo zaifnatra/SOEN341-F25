@@ -328,7 +328,7 @@ app.post('/reject-organizer', async (req, res) => {
 /* ---------------- EVENT ROUTES ---------------- */
 
 app.post('/createEvent', async (req, res) => {
-  const { title, description, date, time, location, capacity, type } = req.body;
+  const { title, description, date, time, location, capacity, type, category } = req.body;
 
   if (!title || !date || !time || !location) {
     return res.status(400).json({ message: "Missing required fields." });
@@ -364,6 +364,7 @@ app.post('/createEvent', async (req, res) => {
       location,
       capacity: parseInt(capacity),
       type,
+      category: category || "Other",
       qrCodes,
       scannedTickets: 0,
       attendanceRate: 0,
