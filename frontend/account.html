@@ -17,7 +17,9 @@
       <a href="help.html">HELP</a>
   </div>
 
+<div class="account-layout">
   <div class="profile-box">
+    <!-- ...existing code... -->
     <h2>MY PROFILE</h2>
     <div class="profile-icon">👤</div>
     <p id="profile-name">Name</p>
@@ -25,41 +27,50 @@
     <p id="profile-role">Role</p>
   </div>
 
-  <div class="options">
-    <div class="option">
-      <div class="option" id="my-events-option"></div>
-      <img src="calendar.png" alt="events">
-      <p>MY EVENTS</p>
+  <div class="acc-main-content">
+    <div class="left-column">
+      <div class="options">
+        <div class="option" id="my-events-option">
+          <img src="calendar.png" alt="events">
+          <p>MY EVENTS</p>
+        </div>
+
+        <div class="option">
+          <a href="create-event.html">
+            <img src="create-event.png" alt="create event">
+            <p>CREATE EVENT</p>
+          </a>
+        </div>
+      </div>
     </div>
 
-    <div class="option">
-      <a href="create-event.html">
-      <img src="create-event.png" alt="create event" >
-      <p>CREATE EVENT</p>
-      </a>
-    </div>
+    <aside class="right-column">
+      <div id="organizer-request-section" style="display:none;">
+        <h3>Request Organizer Access</h3>
+
+        <label>
+          <input type="radio" name="orgRequestType" value="new" checked>
+          I want to become a new Organizer (not linked to any event).
+        </label>
+        <br>
+        <label>
+          <input type="radio" name="orgRequestType" value="existing">
+          I want to become an Organizer for existing events:
+        </label>
+
+        <!-- moved select into a wrapper so it can be aligned bottom-right bc yes-->
+        <div class="existing-list-wrapper">
+          <select id="existingEventsSelect" multiple size="5" disabled>
+            <!-- Multiple events selectable -->
+          </select>
+        </div>
+
+        <br>
+        <button id="submitOrgRequest">Submit Request</button>
+      </div>
+    </aside>
   </div>
-
-  <div id="organizer-request-section" style="display:none; margin-top:20px;">
-    <h3>Request Organizer Access</h3>
-
-    <label>
-      <input type="radio" name="orgRequestType" value="new" checked>
-      I want to become a new Organizer (not linked to any event).
-    </label>
-    <br>
-    <label>
-      <input type="radio" name="orgRequestType" value="existing">
-      I want to become an Organizer for existing events:
-    </label>
-
-    <select id="existingEventsSelect" multiple size="5" disabled>
-      <!-- Multiple events selectable -->
-    </select>
-
-    <br><br>
-    <button id="submitOrgRequest">Submit Request</button>
-  </div>
+</div>
 
 <script>
   // Show section only if student

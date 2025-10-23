@@ -216,8 +216,8 @@ body {
   padding: 40px;
   width: 250px;
   text-align: center;
-  margin: 40px;
-  float: left;
+  margin: 20px;
+  float: none;
 }
 
 .profile-box h2 {
@@ -247,6 +247,57 @@ body {
 .option img {
   width: 100px;   
   height: auto;   
+}
+
+/* more css to make the organizer approval page look better */
+
+.account-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;     
+  padding: 20px;
+}
+
+/* ensure acc-main-content keeps the same gap between left & right columns */
+.acc-main-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  margin: 0; 
+}
+
+.left-column {
+  flex: 1;
+  min-width: 0;
+}
+
+.right-column {
+  width: 320px;     
+  flex-shrink: 0;
+}
+
+#organizer-request-section {
+  padding: 16px;
+  margin: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  min-height: 240px; 
+  float: none;
+}
+
+/*css for the list of events possible to organize*/
+.existing-list-wrapper {
+  margin-top: auto;   
+  align-self: flex-end; 
+  width: auto;
+}
+
+.existing-list-wrapper select {
+  min-width: 180px;
+  max-width: 260px;
 }
 
 /* css for create-event.html page */
