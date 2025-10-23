@@ -8,7 +8,7 @@ const QRCode = require('qrcode'); //DUMMY QR CODE
 const archiver = require("archiver");
 const { ObjectId } = require("mongodb");
 const { Buffer } = require("buffer");
-
+const PDFDocument = require('pdfkit');
 
 // Directory where QR codes are saved
 const QR_CODES_DIR = path.join(__dirname, "qrcodes");
@@ -589,6 +589,7 @@ app.delete("/delete-user/:userId", async (req, res) => {
   }
 });
 
+/* ---------------- STUDENT EVENT MANAGEMENT ---------------- */
 // Student signs up for an event
 app.post('/signup-event', requireLogin, async (req, res) => {
   try {
@@ -616,18 +617,34 @@ app.post('/signup-event', requireLogin, async (req, res) => {
       return res.status(400).json({ success: false, message: "You already signed up for this event." });
     }
 
-    // Add event to user's myEvents and update ticket count
-    await usersCollection.updateOne(
-      { email: userEmail },
-      { $addToSet: { myEvents: eventId } }
+    // Find an unused QR code (scanned = false and not assigned)
+    const availableQr = event.qrCodes.find(q => !q.assignedTo && !q.scanned);
+    if (!availableQr) {
+      return res.status(400).json({ success: false, message: "No available QR codes." });
+    }
+
+    // Mark QR as assigned to this user
+    await eventsCollection.updateOne(
+      { _id: new ObjectId(eventId), "qrCodes.code": availableQr.code },
+      { $set: { "qrCodes.$.assignedTo": userEmail } }
     );
 
+    // Add event to user's list
+    await usersCollection.updateOne(
+      { email: userEmail },
+      {
+        $addToSet: { myEvents: eventId },
+        $push: { assignedTickets: { eventId, qrCode: availableQr.code } }
+      }
+    );
+
+    // Update remaining tickets
     await eventsCollection.updateOne(
       { _id: new ObjectId(eventId) },
       { $inc: { remainingTickets: -1 } }
     );
 
-    res.json({ success: true, message: `Successfully signed up for ${event.title}!` });
+    res.json({ success: true, message: `Signed up for ${event.title}`, qrCode: availableQr.code });
   } catch (error) {
     console.error("Error signing up for event:", error);
     res.status(500).json({ success: false, message: "Server error signing up for event." });
@@ -698,6 +715,53 @@ app.post('/remove-signedup-event', requireLogin, async (req, res) => {
     res.status(500).json({ success: false, message: "Server error." });
   }
 });
+
+app.get('/generate-ticket/:eventId', async (req, res) => {
+  try {
+    const eventId = req.params.eventId.trim();
+    const userEmail = req.session.user?.email || "unknown@concordia.ca";
+
+    const event = await eventsCollection.findOne({ _id: new ObjectId(eventId) });
+    if (!event) return res.status(404).send('Event not found');
+
+    // Find the QR code assigned to this user
+    const assignedQr = event.qrCodes.find(q => q.assignedTo === userEmail);
+    if (!assignedQr) {
+      return res.status(400).send("No ticket found for this user.");
+    }
+
+    const qrCodeDataUrl = assignedQr.image;
+
+    const doc = new PDFDocument({ size: "A4", margin: 50 });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="ticket_${event.title}.pdf"`);
+    doc.pipe(res);
+
+    doc.fontSize(22).text("Concordia University Campus Event Ticket", { align: "center" });
+    doc.moveDown(1.5);
+
+    doc.fontSize(16).text(`Event: ${event.title}`);
+    doc.text(`Date: ${event.date}`);
+    doc.text(`Location: ${event.location}`);
+    doc.text(`Registered To: ${userEmail}`);
+    doc.text(`QR Code ID: ${assignedQr.code}`);
+    doc.moveDown(1.5);
+
+    // Embed assigned QR code image
+    const qrImage = qrCodeDataUrl.replace(/^data:image\/png;base64,/, "");
+    const qrBuffer = Buffer.from(qrImage, "base64");
+    doc.image(qrBuffer, { fit: [150, 150], align: "center" });
+
+    doc.moveDown(2);
+    doc.fontSize(10).text("Please present this QR code at event entry.", { align: "center" });
+
+    doc.end();
+  } catch (err) {
+    console.error('Error generating ticket:', err);
+    res.status(500).send('Server error generating ticket.');
+  }
+});
+
 
 
 /* ---------------- SERVER ---------------- */
