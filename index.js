@@ -502,15 +502,32 @@ app.post('/validate-ticket', async (req, res) => {
     if (ticket.scanned) {
       return res.json({ valid: false, message: "Ticket has already been used." });
     }
+
+    // Prevent joining event over capacity (no subtraction)
+    const remainingBefore = Number.isInteger(event.remainingTickets)
+      ? event.remainingTickets
+      : (event.capacity - (event.scannedTickets || 0));
+
+    if (remainingBefore <= 0) {
+      return res.json({ valid: false, message: "Event is already at full capacity." });
+    }
     
-        // Mark QR as scanned
-    await eventsCollection.updateOne(
-      { _id: new ObjectId(event._id), "qrCodes.code": qrData },
+    // Mark QR as scanned
+    const markResult = await eventsCollection.updateOne(
+      { _id: new ObjectId(event._id), "qrCodes.code": qrData, "qrCodes.scanned": false },
       { $set: { "qrCodes.$.scanned": true } }
     );
-        // Increment scannedTickets count
+
+    // Prevent double-scans
+    if (!markResult.modifiedCount) {
+      return res.json({ valid: false, message: "Ticket has already been used." });
+    }
+    
+    // Increment scannedTickets count
     const updatedScannedCount = (event.scannedTickets || 0) + 1;
-    const newRemaining = event.capacity - updatedScannedCount;
+
+    // Recalculate remainingTickets and attendanceRate
+    const newRemaining = Math.max(0, event.capacity - updatedScannedCount);
     const newAttendanceRate = (updatedScannedCount / event.capacity) * 100;
 
     await eventsCollection.updateOne(
