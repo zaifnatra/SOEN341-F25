@@ -13,8 +13,24 @@ function showTab(tabId, event) {
 
 async function loadPendingOrganizers() {
   try {
-    const res = await fetch("/pending-organizers");
-    const pending = await res.json();
+    const [resPending, resEvents] = await Promise.all([
+      fetch("/pending-organizers"),
+      fetch("/events")
+    ]);
+
+    const pending = await resPending.json();
+    let events = [];
+    if (resEvents.ok) {
+      events = await resEvents.json();
+    }
+    
+    //build map of event IDs to titles
+    const eventMap = {};
+    events.forEach(e => {
+      const id = e._id
+      const name = e.title
+      if (id) eventMap[id] = name || id; //fallback to ID if no title
+    })
 
     const tbody = document
       .getElementById("pending-organizers-table")
@@ -24,11 +40,13 @@ async function loadPendingOrganizers() {
     pending.forEach(req => {
       const tr = document.createElement("tr");
 
+      const displayEventTitle = req.eventId ? (eventMap[req.eventId] || "Deleted Event") : "-";
+
       tr.innerHTML = `
         <td>${req.username || "N/A"}</td>
         <td>${req.email || "N/A"}</td>
         <td>${req.type || "N/A"}</td>
-        <td>${req.eventId || "-"}</td>
+        <td>${displayEventTitle}</td>
         <td>${new Date(req.submittedAt).toLocaleString()}</td>
         <td>
           <button class="approve" onclick="approveOrganizer('${req.userId}','${req.eventId || ""}')">Approve</button>
