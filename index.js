@@ -367,7 +367,8 @@ app.post('/createEvent', async (req, res) => {
       qrCodes,
       scannedTickets: 0,
       attendanceRate: 0,
-      remainingTickets: parseInt(capacity)
+      remainingTickets: parseInt(capacity),
+      scans: []
     };
 
     const insertResult = await eventsCollection.insertOne(newEvent);
@@ -508,6 +509,20 @@ app.post('/validate-ticket', async (req, res) => {
       { _id: new ObjectId(event._id), "qrCodes.code": qrData },
       { $set: { "qrCodes.$.scanned": true } }
     );
+
+    // record scan timestamp and increment counts atomically
+   const now = new Date().toISOString();
+   await eventsCollection.updateOne(
+     { _id: new ObjectId(event._id) },
+     {
+       $inc: { scannedTickets: 1 },
+       $push: { scans: now },
+       $set: {
+         remainingTickets: event.capacity - ((event.scannedTickets || 0) + 1),
+         attendanceRate: ((event.scannedTickets || 0) + 1) / event.capacity * 100
+       }
+     }
+  );
         // Increment scannedTickets count
     const updatedScannedCount = (event.scannedTickets || 0) + 1;
     const newRemaining = event.capacity - updatedScannedCount;

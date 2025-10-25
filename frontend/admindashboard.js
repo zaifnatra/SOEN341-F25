@@ -7,6 +7,7 @@ function showTab(tabId, event) {
 
   // Load content dynamically
   if (tabId === "oversight") loadPendingOrganizers();
+  if (tabId === "analytics") loadAnalytics();
   if (tabId === "management") loadAllUsers();
 }
 
@@ -139,4 +140,96 @@ async function rejectOrganizer(userId, eventId) {
   }
 }
 
+// Trigger loading pending organizers when the "Oversight" tab is opened
 document.addEventListener("DOMContentLoaded", loadPendingOrganizers);
+
+async function loadAnalytics() {
+  try {
+    const res = await fetch("/events");
+    if (!res.ok) throw new Error("Failed to fetch events");
+    const events = await res.json();
+
+    // helper: count scans in [start, end] using event.scans (ISO strings)
+    function countScansInRange(e, start, end) {
+      if (Array.isArray(e.scans) && e.scans.length) {
+        return e.scans.reduce((cnt, ts) => {
+          const d = new Date(ts);
+          return d.toString() !== "Invalid Date" && d >= start && d <= end ? cnt + 1 : cnt;
+        }, 0);
+      }
+      return 0; // cannot attribute total scannedTickets to windows without timestamps
+    }
+
+    // totals: prefer scans length if present, else fallback to scannedTickets
+    /*const totalEvents = events.length;
+    const totalTicketsIssued = events.reduce((sum, e) => {
+      if (Array.isArray(e.scans)) return sum + e.scans.length;
+      return sum + (e.scannedTickets || 0);
+    }, 0);*/
+
+    // totals: use scannedTickets as a priority, but tolerate scans[]
+    const totalEvents = events.length;
+    const totalTicketsIssued = events.reduce((sum, e) => {
+      const scansLen = Array.isArray(e.scans) ? e.scans.length : 0;
+      const scannedCount = typeof e.scannedTickets === 'number'
+        ? Math.max(e.scannedTickets, scansLen) // prefer recorded scannedTickets, but keep scans as sanity-check
+        : scansLen;
+      return sum + scannedCount;
+    }, 0);
+
+    // trend unit and anchored 'now' (5min/hour(if hour is wanted replace logic accordinly)/day)
+    const TREND_UNIT = "5min";
+    const msPerUnit = TREND_UNIT === "5min" ? 5 * 60 * 1000 : 24 * 60 * 60 * 1000;
+    let now = new Date();
+    const lastStart = new Date(now.getTime() - msPerUnit);
+    const prevStart = new Date(now.getTime() - 2 * msPerUnit);
+
+    const lastTickets = events.reduce((sum, e) => sum + countScansInRange(e, lastStart, now), 0);
+    const prevTickets = events.reduce((sum, e) => sum + countScansInRange(e, prevStart, lastStart - 1), 0);
+
+    // compute trend (safe handling of prev==0)
+    let trendPercent = "N/A", trendColor = "gray";
+    if (prevTickets === 0) {
+      trendPercent = lastTickets === 0 ? "0%" : "—";
+    } else {
+      const change = Math.round(((lastTickets - prevTickets) / prevTickets) * 100);
+      trendPercent = (change >= 0 ? "+" : "") + change + "%";
+      trendColor = change >= 0 ? "green" : "red";
+    }
+
+    // update DOM safely (guards omitted for brevity in this snippet)
+    document.getElementById("total-events").textContent = totalEvents;
+    document.getElementById("tickets-issued").textContent = totalTicketsIssued;
+    const trendElem = document.getElementById("participation-trend");
+    trendElem.textContent = `${trendPercent} (last ${TREND_UNIT})`;
+    trendElem.style.color = trendColor;
+    
+
+    // populate events table with total + recent counts
+    const table = document.getElementById("name-and-tickets-claimed");
+    if (table) {
+      let tbody = table.querySelector("tbody") || table.appendChild(document.createElement("tbody"));
+      tbody.innerHTML = "";
+       events.forEach(e => {
+        const scansLen = Array.isArray(e.scans) ? e.scans.length : 0;
+        const total = typeof e.scannedTickets === 'number'
+          ? Math.max(e.scannedTickets, scansLen)   // scannedTickets is authoritative
+          : scansLen;
+        const recent = countScansInRange(e, lastStart, now);
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${e.title || "N/A"}</td><td>${total} (${recent} recent)</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+  } catch (err) {
+    console.error("Error loading analytics:", err);
+    // ...existing error handling...
+  }
+}
+
+// Trigger loading analytics when the "Analytics" tab is opened
+document.addEventListener("DOMContentLoaded", () => {
+  loadAnalytics();
+  // refresh analytics every 5 minutes (300000 ms) — shorten to 30s for faster tests if needed
+  setInterval(loadAnalytics, 5 * 60 * 1000);
+});

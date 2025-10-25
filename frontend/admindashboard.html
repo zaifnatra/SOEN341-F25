@@ -52,31 +52,28 @@
     <div class="stats">
       <div class="stat-box">
         <h3>Total Events</h3>
-        <p>128</p>
+        <p id="total-events">Loading...</p>
       </div>
       <div class="stat-box">
         <h3>Tickets Issued</h3>
-        <p>2,350</p>
+        <p id="tickets-issued">Loading...</p>
       </div>
       <div class="stat-box">
         <h3>Participation Trend</h3>
-        <p style="color: green;">+12%</p>
+        <p id="participation-trend">Loading...</p>
       </div>
     </div>
     <h3 style="margin-top:20px;">Events & Tickets</h3>
-    <table>
+    <table id="name-and-tickets-claimed">
+      <thead>
       <tr>
         <th>Event Name</th>
         <th>Tickets Claimed</th>
       </tr>
-      <tr>
-        <td>Hackathon 2025</td>
-        <td>450</td>
-      </tr>
-      <tr>
-        <td>Spring Concert</td>
-        <td>800</td>
-      </tr>
+      </thead>
+      <tbody>
+        <!-- Filled dynamically -->
+      </tbody>
     </table>
   </div>
 
