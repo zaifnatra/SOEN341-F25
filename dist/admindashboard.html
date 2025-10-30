@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Concordia University- Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  
+</head>
+<body>
+    <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
+
+     <div class="navbar">
+      <a href="index.html">HOME</a>
+       <a href="/account">ACCOUNT</a>
+       <a href="/eventspage">EVENTS</a>
+       <a id="dashboard-link" href="#">DASHBOARD</a>
+       <a href="help.html">HELP</a>
+  </div>
+  <h1>Administrator Dashboard</h1>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('oversight')">Platform Oversight</div>
+    <div class="tab" onclick="showTab('analytics')">Analytics</div>
+    <div class="tab" onclick="showTab('management')">Organizations</div>
+  </div>
+
+  <!-- Oversight -->
+  <div id="oversight" class="content active">
+    <h2>Pending Organizer Accounts</h2>
+<table id="pending-organizers-table">
+  <thead>
+    <tr>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Request Type</th>
+      <th>Event (if any)</th>
+      <th>Date Submitted</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Filled dynamically -->
+  </tbody>
+</table>
+
+  </div>
+
+  <!-- Analytics -->
+  <div id="analytics" class="content">
+    <h2>Platform Analytics</h2>
+    <div class="stats">
+      <div class="stat-box">
+        <h3>Total Events</h3>
+        <p>128</p>
+      </div>
+      <div class="stat-box">
+        <h3>Tickets Issued</h3>
+        <p>2,350</p>
+      </div>
+      <div class="stat-box">
+        <h3>Participation Trend</h3>
+        <p style="color: green;">+12%</p>
+      </div>
+    </div>
+    <h3 style="margin-top:20px;">Events & Tickets</h3>
+    <table>
+      <tr>
+        <th>Event Name</th>
+        <th>Tickets Claimed</th>
+      </tr>
+      <tr>
+        <td>Hackathon 2025</td>
+        <td>450</td>
+      </tr>
+      <tr>
+        <td>Spring Concert</td>
+        <td>800</td>
+      </tr>
+    </table>
+  </div>
+
+<!-- Management -->
+<div id="management" class="content">
+  <h2>All User Accounts</h2>
+  <table id="all-users-table">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Filled dynamically -->
+    </tbody>
+  </table>
+</div>
+
+   
+    <div id="auth-btn-container"></div>
+
+     <footer>
+   <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
+ </footer>
+
+    <script src="admindashboard.js"></script>
+    <script src="signout.js"></script>
+    <script src="index_role.js"></script>
+
+    </body>
+    </html>
