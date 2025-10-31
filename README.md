@@ -74,7 +74,11 @@ Recommendations automatically refresh when:
 #### Default Recommendation
 - For users who do not have any events linked to their account, show them upcoming or popular events.
 
-  
+---
+
+#### UML + Block Diagrams
+
+![5366238B-A22C-4E29-B46A-C78ECE8951D2](https://github.com/user-attachments/assets/14de76ae-a545-405c-b988-cc8036234a5e)
 
 
 ## **Team Members**
