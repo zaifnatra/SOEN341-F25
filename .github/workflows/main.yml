@@ -39,7 +39,10 @@ jobs:
       - name: Build project
         run: npm run build 
 
+      - name: Run unit test
+        run: node tests/unit_tests_directory/testing_frontend.js
 
+        
   delete_branch:
     #Only run after a merge event
     if: github.event.pull_request.merged == true
