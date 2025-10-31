@@ -4,13 +4,13 @@ const path = require('path');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const QRCode = require('qrcode'); //DUMMY QR CODE
+const QRCode = require('qrcode');
 const archiver = require("archiver");
 const { ObjectId } = require("mongodb");
 const { Buffer } = require("buffer");
 const PDFDocument = require('pdfkit');
 
-// Directory where QR codes are saved
+//saving the QR codes to local direcotry
 const QR_CODES_DIR = path.join(__dirname, "qrcodes");
 const app = express();
 
@@ -69,6 +69,7 @@ app.get('/signin', (req, res) => {
 
 /* ---------------- USER ROUTES ---------------- */
 
+//function that handles creating an account 
 app.post('/createAccount', async (req, res) => {
   const { email, username, password } = req.body;
   try {
@@ -88,6 +89,7 @@ app.post('/createAccount', async (req, res) => {
   }
 });
 
+//handles logging in
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -110,6 +112,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
+//handles logging out
 app.get('/logout', (req, res) => {
   req.session.logoutMessage = "You have been logged out.";
   req.session.user = null;
@@ -118,6 +121,7 @@ app.get('/logout', (req, res) => {
   });
 });
 
+//handles express session
 app.get('/session-status', (req, res) => {
   const loggedIn = !!req.session.user;
   const logoutMessage = req.session.logoutMessage || null;
@@ -125,6 +129,7 @@ app.get('/session-status', (req, res) => {
   res.json({ loggedIn, logoutMessage });
 });
 
+//redirect to main.html after signing in successfully
 app.get('/main.html', (req, res) => {
   if (!req.session.user) {
     return res.redirect('/signin.html');
@@ -132,6 +137,7 @@ app.get('/main.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'main.html'));
 });
 
+//debugging in terminal that lists user accounts found in mongodb 
 app.get('/listUsers', async (req, res) => {
   try {
     const users = await usersCollection.find().toArray();
@@ -144,6 +150,7 @@ app.get('/listUsers', async (req, res) => {
   }
 });
 
+//getting the account of the logged in user
 app.get('/user-profile', (req, res) => {
   if (req.session && req.session.user) {
     // Only send safe fields
@@ -216,7 +223,7 @@ app.post('/request-organizer', async (req, res) => {
   }
 });
 
-
+//handles when a student account makes a request to become an organizer account
 app.get('/pending-organizers', async (req, res) => {
   try {
     // Flatten each request into individual objects for admin dashboard
@@ -247,7 +254,7 @@ app.get('/pending-organizers', async (req, res) => {
   }
 });
 
-
+//handles when admin approves of student account request to become an organizer account
 app.post('/approve-organizer', async (req, res) => {
   const { userId, eventId } = req.body; // eventId identifies which request to approve
   try {
@@ -299,7 +306,7 @@ app.post('/approve-organizer', async (req, res) => {
   }
 });
 
-
+//when an organizer request gets rejected by admin
 app.post('/reject-organizer', async (req, res) => {
   const { userId, eventId } = req.body;
   try {
@@ -327,6 +334,7 @@ app.post('/reject-organizer', async (req, res) => {
 
 /* ---------------- EVENT ROUTES ---------------- */
 
+//creating an event
 app.post('/createEvent', async (req, res) => {
   const { title, description, date, time, location, capacity, type } = req.body;
 
@@ -381,7 +389,7 @@ app.post('/createEvent', async (req, res) => {
   }
 });
 
-
+//gets all the events to display on events page
 app.get('/events', async (req, res) => {
   try {
     const events = await eventsCollection.find().toArray();
@@ -418,7 +426,7 @@ app.delete("/delete-event/:eventId", async (req, res) => {
   }
 });
 
-
+//shows which events the student has signed up to
 app.get('/my-events', requireLogin, async (req, res) => {
   try {
     const organizerEmail = req.session.user.email;
@@ -439,6 +447,7 @@ app.get('/my-events', requireLogin, async (req, res) => {
   }
 });
 
+//downloading qr code
 app.get("/download-qrcodes/:eventId", async (req, res) => {
   try {
     const eventId = req.params.eventId.trim();
@@ -481,6 +490,7 @@ app.get("/download-qrcodes/:eventId", async (req, res) => {
   }
 });
 
+//handles ticket validation and ensures that the same ticket can't be scanned twice
 app.post('/validate-ticket', async (req, res) => {
   try {
     const { qrData } = req.body; // text from decoded QR
@@ -559,6 +569,46 @@ app.post('/validate-ticket', async (req, res) => {
     res.status(500).json({ valid: false, message: "Server error during validation." });
   }
 });
+
+// Export attendee list CSV for a single event
+app.get("/export-event-csv/:eventId", requireLogin, async (req, res) => {
+  try {
+    const eventId = req.params.eventId.trim();
+    if (!ObjectId.isValid(eventId)) return res.status(400).send("Invalid event ID");
+
+    const event = await eventsCollection.findOne({ _id: new ObjectId(eventId) });
+    if (!event) return res.status(404).send("Event not found");
+
+    // Only allow organizers of the event to export
+    const organizerEmail = req.session.user.email;
+    const isOrganizer = Array.isArray(event.organizer)
+      ? event.organizer.includes(organizerEmail)
+      : event.organizer === organizerEmail;
+
+    if (!isOrganizer) return res.status(403).send("Unauthorized");
+
+    // Build CSV: attendee email, ticket status
+    const csvRows = [["Email", "Ticket Status"]];
+    event.qrCodes.forEach((qr) => {
+      if (qr.assignedTo) {
+        csvRows.push([
+          qr.assignedTo,
+          qr.scanned ? "attended" : "did not attend"
+        ]);
+      }
+    });
+
+    const csvContent = csvRows.map((r) => r.join(",")).join("\n");
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", `attachment; filename="${event.title.replace(/\s+/g, "_")}_attendees.csv"`);
+    res.send(csvContent);
+
+  } catch (err) {
+    console.error("Error exporting event CSV:", err);
+    res.status(500).send("Server error exporting CSV");
+  }
+});
+
 
 //express route for organizer dashboard
 app.get('/organizerdashboard', requireLogin, (req, res) => {
