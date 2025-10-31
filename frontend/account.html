@@ -19,7 +19,6 @@
 
 <div class="account-layout">
   <div class="profile-box">
-    <!-- ...existing code... -->
     <h2>MY PROFILE</h2>
     <div class="profile-icon">👤</div>
     <p id="profile-name">Name</p>
@@ -73,30 +72,35 @@
 </div>
 
 <script>
-  // Show section only if student
-  fetch('/user-profile')
+  
+fetch('/user-profile')
+  .then(res => res.json())
+  .then(user => {
+    if (user.role === "student" || user.role === "organizer") {
+      document.getElementById('organizer-request-section').style.display = "block";
+      loadExistingEvents(user.role, user.email);
+    }
+  });
+
+ function loadExistingEvents(role, userEmail) {
+  fetch('/events')
     .then(res => res.json())
-    .then(user => {
-      if (user.role === "student") {
-        document.getElementById('organizer-request-section').style.display = "block";
-        loadExistingEvents();
-      }
-    });
+    .then(events => {
+      const select = document.getElementById('existingEventsSelect');
+      select.innerHTML = "";
 
-  function loadExistingEvents() {
-    fetch('/events')
-      .then(res => res.json())
-      .then(events => {
-        const select = document.getElementById('existingEventsSelect');
-        events.forEach(event => {
-          const option = document.createElement('option');
-          option.value = event._id;
-          option.textContent = event.title;
-          select.appendChild(option);
-        });
+      events.forEach(event => {
+        // Filter out events already organized by this user
+        if (role === "organizer" && event.organizer && event.organizer.includes(userEmail)) {
+          return; // skip events already owned
+        }
+        const option = document.createElement('option');
+        option.value = event._id;
+        option.textContent = event.title;
+        select.appendChild(option);
       });
-  }
-
+    });
+}
   // Radio buttons behavior
   const radios = document.querySelectorAll('input[name="orgRequestType"]');
   const eventsSelect = document.getElementById('existingEventsSelect');
@@ -130,6 +134,7 @@
     .catch(() => alert("Request failed"));
   });
 </script>
+
 
 <footer>
   <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
