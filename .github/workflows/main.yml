@@ -2,17 +2,20 @@
 
 name: CI Pipeline
 
+#Workflow runs on PRs that target main branch. 
 on:
   pull_request:
     branches:
       - main
     types: [opened, synchronize, reopened, closed]
 
+#Allow workflow to push (used later to delete branches)
 permissions:
   contents: write
 
 jobs:
   test_and_build:
+    #Skip when PR is "closed"
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     container:
@@ -20,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4 #Pull repo code into runner
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -28,18 +31,19 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci #lockfile-stric install
 
       - name: Run tests
-        run: npm test
+        run: npm test #Must exist in package.json srcipts
 
       - name: Build project
-        run: npm run build
+        run: npm run build 
 
 
   delete_branch:
+    #Only run after a merge event
     if: github.event.pull_request.merged == true
-    needs: test_and_build   # ensures tests finish first
+    needs: test_and_build   # Ensures tests finish first
     runs-on: ubuntu-latest
     permissions:
       contents: write
