@@ -55,7 +55,31 @@ We identify three primary users: **Students**, **Organizers**, and **Administrat
 
 ---
 
-### 4. TBD
+### 4. Events Recommendation
+
+#### Event Suggestion
+- Display a “Recommended for You” section on the homepage or events page.
+Recommendations generated based on:
+User’s selected interests or categories (e.g., Music, Tech, Sports).
+Previously attended or favorited events.
+Popular  events on the platform.
+- Create option to click "more like this" or "not interested" for events 
+
+#### Updates
+Recommendations automatically refresh when:
+- Recommendations refresh when:
+  New events are addede to the database
+  The user intercts with new events (attends, likes, or saves) 
+
+#### Default Recommendation
+- For users who do not have any events linked to their account, show them upcoming or popular events.
+
+---
+
+#### UML + Block Diagrams
+
+![5366238B-A22C-4E29-B46A-C78ECE8951D2](https://github.com/user-attachments/assets/14de76ae-a545-405c-b988-cc8036234a5e)
+
 
 ## **Team Members**
 

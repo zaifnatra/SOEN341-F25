@@ -216,8 +216,8 @@ body {
   padding: 40px;
   width: 250px;
   text-align: center;
-  margin: 40px;
-  float: left;
+  margin: 20px;
+  float: none;
 }
 
 .profile-box h2 {
@@ -247,6 +247,57 @@ body {
 .option img {
   width: 100px;   
   height: auto;   
+}
+
+/* more css to make the organizer approval page look better */
+
+.account-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;     
+  padding: 20px;
+}
+
+/* ensure acc-main-content keeps the same gap between left & right columns */
+.acc-main-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  margin: 0; 
+}
+
+.left-column {
+  flex: 1;
+  min-width: 0;
+}
+
+.right-column {
+  width: 320px;     
+  flex-shrink: 0;
+}
+
+#organizer-request-section {
+  padding: 16px;
+  margin: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  min-height: 240px; 
+  float: none;
+}
+
+/*css for the list of events possible to organize*/
+.existing-list-wrapper {
+  margin-top: auto;   
+  align-self: flex-end; 
+  width: auto;
+}
+
+.existing-list-wrapper select {
+  min-width: 180px;
+  max-width: 260px;
 }
 
 /* css for create-event.html page */
@@ -838,8 +889,6 @@ input {
     padding: 20px;
   }
 }
-<<<<<<< Updated upstream
-=======
 .fancy-btn {
   font-size: 10px;
   letter-spacing: 1px;
@@ -937,10 +986,23 @@ input {
 .filter-container:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+
+.filter-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px;
+  background-color: #f4f4f4;
+  border-radius: 8px;
+  margin: 15px auto;
+  width: 90%;
+  max-width: 1000px;
+  flex-wrap: wrap; /* Allows filters to wrap on small screens */
 }
 
 .filter-container input,
 .filter-container select {
+
   border-radius: 20px;
   border: 1.8px solid #ccc;
   padding: 8px 14px;
@@ -1038,4 +1100,20 @@ input {
       color: #555;
       font-size: 14px;
     }
->>>>>>> Stashed changes
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.filter-button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  background-color: #004a99; /* Example color */
+  color: white;
+  cursor: pointer;
+}
+
+.filter-button:hover {
+  background-color: #003366;
+}

@@ -4,7 +4,9 @@
   "description": "This project is a Campus Events & Ticketing Web Application which allows students to discover, organize, and attend events on campus. The system supports three main users: Students, Organizers, and Administrators. Students can find and attend events of their choosing by saving favorites and claiming tickets with QR-based check-in. In addition, organizers can also create events and track analytics, including participation rates. Finally, administrators provide a platform oversight to ensure smooth operation of events. Together, these features streamline event management and boost student involvement on campus.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Fake Test Has Been Run\""
+    "test": "echo \"Fake Test Has Been Run\"",
+    "build": "node ./scripts/build.js",
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
@@ -21,18 +23,12 @@
   "dependencies": {
     "archiver": "^6.0.2",
     "body-parser": "^1.20.3",
-<<<<<<< Updated upstream
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-session": "^1.18.1",
     "mongodb": "^6.8.1",
-=======
-    "dotenv": "^16.6.1",
-    "express": "^4.21.2",
-    "express-session": "^1.18.2",
-    "mongodb": "^6.20.0",
     "pdfkit": "^0.17.2",
->>>>>>> Stashed changes
+
     "qrcode": "^1.5.4"
   }
 }

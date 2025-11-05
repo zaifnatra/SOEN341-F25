@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -18,10 +19,6 @@
        <a href="help.html">HELP</a>
   </div>
 
-<<<<<<< Updated upstream
-=======
-  <div class="filter-container">
-  <input type="text" id="filter-name" placeholder="Search through all our campus events">
   <select id="filter-category">
     <option value="">All Categories</option>
     </select>
@@ -35,70 +32,272 @@
 </div>
 
 
->>>>>>> Stashed changes
   <div id="auth-btn-container"></div>
 
   <div class="events-container" id="events-list">
-    <p>Loading events...</p>
   </div>
 
    <footer>
    <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
  </footer>
 
- <script src="index_role.js"></script>
- <script>
-    // Fetch and display all events from MongoDB
-    async function loadEvents() {
-      const eventsList = document.getElementById("events-list");
+<script>
+  // Global variables to store our data
+  let allEvents = [];
+  let userRole = null;
 
-      try {
-        const response = await fetch("/events");
-        const events = await response.json();
+  async function getUserRole() {
+    try {
+      const res = await fetch("/user-profile");
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.role || null;
+    } catch {
+      return null;
+    }
+  }
 
-        if (!Array.isArray(events) || events.length === 0) {
-          eventsList.innerHTML = "<p>No events found.</p>";
-          return;
-        }
-
-        eventsList.innerHTML = "";
-
-        events.forEach((ev) => {
-          const card = document.createElement("div");
-          card.classList.add("event-card");
-
-          card.innerHTML = `
-            <h3>${ev.title}</h3>
-            <p><strong>Date:</strong> ${ev.date}</p>
-            <p><strong>Time:</strong> ${ev.time}</p>
-            <p><strong>Location:</strong> ${ev.location}</p>
-            <p>${ev.description || ""}</p>
-            <p><strong>Tickets:</strong> ${ev.capacity} | ${ev.type}</p>
-            <p><strong>Remaining:</strong> ${ev.remainingTickets ?? ev.capacity}</p>
-          `;
-
-          // Optional: display first QR code thumbnail
-          if (ev.qrCodes && ev.qrCodes.length > 0) {
-            const qrImg = document.createElement("img");
-            qrImg.src = ev.qrCodes[0].image;
-            qrImg.alt = "QR Code sample";
-            qrImg.classList.add("qr-sample");
-            qrImg.style.width = "100px";
-            qrImg.style.marginTop = "8px";
-            card.appendChild(qrImg);
-          }
-
-          eventsList.appendChild(card);
-        });
-      } catch (error) {
-        console.error("Error loading events:", error);
-        eventsList.innerHTML = "<p>Error fetching events. Please try again later.</p>";
+  /**
+   * Populates the category filter dropdown
+   */
+  function populateFilters(events) {
+    const categorySelect = document.getElementById("filter-category");
+    // Clear existing options (except the "All")
+    categorySelect.innerHTML = '<option value="">All Categories</option>';
+    
+    // Get all unique categories from the events
+    const categories = [...new Set(events.map(ev => ev.type))];
+    
+    categories.forEach(category => {
+      if (category) { // Avoid adding 'undefined' or null
+        const option = document.createElement("option");
+        option.value = category;
+        option.textContent = category;
+        categorySelect.appendChild(option);
       }
+    });
+  }
+
+  /**
+   * This function now just renders a given list of events
+   */
+  function renderEvents(eventsToRender, role) {
+    const eventsList = document.getElementById("events-list");
+    eventsList.innerHTML = ""; // Clear existing list
+
+    if (!Array.isArray(eventsToRender) || eventsToRender.length === 0) {
+      eventsList.innerHTML = "<p>No events found matching your criteria.</p>";
+      return;
     }
 
-    window.onload = loadEvents;
-  </script>
+    eventsToRender.forEach((ev) => {
+      const card = document.createElement("div");
+      card.classList.add("event-card");
 
+      // Make sure all fields exist, providing defaults
+      const title = ev.title || "Untitled Event";
+      const date = ev.date || "No date";
+      const time = ev.time || "No time";
+      const location = ev.location || "No location";
+      const description = ev.description || "";
+      const capacity = ev.capacity || 0;
+      const type = ev.type || "N/A";
+      const remaining = ev.remainingTickets ?? capacity;
+
+
+      card.innerHTML = `
+        <h3>${title}</h3>
+        <p><strong>Date:</strong> ${date}</p>
+        <p><strong>Time:</strong> ${time}</p>
+        <p><strong>Location:</strong> ${location}</p>
+        <p>${description}</p>
+        <p><strong>Tickets:</strong> ${capacity} | ${type}</p>
+        <p><strong>Remaining:</strong> ${remaining}</p>
+      `;
+
+      if (ev.qrCodes && ev.qrCodes.length > 0) {
+        const qrImg = document.createElement("img");
+        qrImg.src = ev.qrCodes[0].image;
+        qrImg.alt = "QR Code sample";
+        qrImg.classList.add("qr-sample");
+        qrImg.style.width = "100px";
+        qrImg.style.marginTop = "8px";
+        qrImg.style.display = "block";
+        qrImg.style.margin = "10px auto 5px";
+        card.appendChild(qrImg);
+      }
+
+      // --- STUDENT SIGNUP BUTTON ---
+      if (role === "student") {
+        const signUpBtn = document.createElement("button");
+        signUpBtn.textContent = "Sign Up";
+        signUpBtn.classList.add("signup-btn");
+        signUpBtn.style.display = "block";
+        signUpBtn.style.margin = "0 auto";
+
+        signUpBtn.addEventListener("click", async () => {
+          if (ev.type.toLowerCase() === "free") {
+            try {
+              const res = await fetch("/signup-event", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ eventId: ev._id })
+              });
+              const data = await res.json();
+              alert(data.message);
+              
+              // Optimistic update: reduce remaining tickets on success
+              if (res.ok && data.success) {
+                  ev.remainingTickets = (ev.remainingTickets ?? capacity) - 1;
+                  renderEvents(allEvents.filter(e => e._id !== ev._id || e.remainingTickets > 0), userRole); // A bit complex, simpler to just re-render
+                  applyFilters(); // Re-apply filters to update the card
+              }
+
+            } catch (err) {
+              console.error("Error signing up:", err);
+              alert("Error signing up for the event.");
+            }
+          } else {
+            window.location.href = `/payment.html?eventId=${ev._id}`;
+          }
+        });
+
+        card.appendChild(signUpBtn);
+      }
+
+      // --- ADMIN DELETE BUTTON ---
+      if (role === "admin") {
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "Delete Event";
+        delBtn.classList.add("delete-btn");
+        delBtn.style.marginTop = "10px";
+        delBtn.onclick = async () => {
+          if (confirm(`Delete event "${title}"?`)) {
+            try {
+              const res = await fetch(`/delete-event/${ev._id}`, {
+                method: "DELETE",
+              });
+              const data = await res.json();
+              alert(data.message);
+              // Remove event from local list and re-render
+              allEvents = allEvents.filter(e => e._id !== ev._id);
+              applyFilters(); // Re-apply filters to refresh list
+            } catch (err) {
+              console.error("Error deleting event:", err);
+              alert("Failed to delete event.");
+            }
+          }
+        };
+        card.appendChild(delBtn);
+      }
+
+      eventsList.appendChild(card);
+    });
+  }
+
+  /**
+   * Fetches all data, stores it, and does the *first* render
+   */
+  async function loadEvents() {
+    const eventsList = document.getElementById("events-list");
+    eventsList.innerHTML = "<p>Loading events...</p>";
+
+    try {
+      const [role, response] = await Promise.all([
+        getUserRole(),
+        fetch("/events")
+      ]);
+      
+      if (!response.ok) {
+          throw new Error(`Failed to fetch events: ${response.statusText}`);
+      }
+
+      const events = await response.json();
+
+      userRole = role; // Store role globally
+      
+      if (Array.isArray(events)) {
+          allEvents = events; // Store all events globally
+      } else {
+          allEvents = []; // Ensure it's an array
+      }
+
+      populateFilters(allEvents); // Populate the dropdown
+      renderEvents(allEvents, userRole); // Do the initial render
+
+    } catch (error) {
+      console.error("Error loading events:", error);
+      eventsList.innerHTML = "<p>Error fetching events. Please try again later.</p>";
+    }
+  }
+
+  /**
+   * This function filters the `allEvents` array and calls renderEvents
+   */
+  function applyFilters() {
+    // Get current filter values
+    const nameValue = document.getElementById("filter-name").value.toLowerCase();
+    const categoryValue = document.getElementById("filter-category").value;
+    const dateValue = document.getElementById("filter-date").value;
+
+    let filteredEvents = allEvents;
+
+    // Apply Event Name filter
+    if (nameValue) {
+      filteredEvents = filteredEvents.filter(ev =>
+        ev.title && ev.title.toLowerCase().includes(nameValue)
+      );
+    }
+
+    // Apply Category filter
+    if (categoryValue) {
+      filteredEvents = filteredEvents.filter(ev => ev.type === categoryValue);
+    }
+
+    // Apply Date filter
+    if (dateValue) {
+      filteredEvents = filteredEvents.filter(ev => ev.date === dateValue);
+    }
+
+    // Re-render the list with only the filtered events
+    renderEvents(filteredEvents, userRole);
+  }
+
+  /**
+   * Clears inputs and shows all events again
+   */
+  function clearFilters() {
+    document.getElementById("filter-name").value = "";
+    document.getElementById("filter-category").value = "";
+    document.getElementById("filter-date").value = "";
+
+    // Render the original, full list
+    renderEvents(allEvents, userRole);
+  }
+
+  // --- Main startup ---
+  // --- Main startup ---
+  window.onload = () => {
+    loadEvents(); // Fetch data and render the list
+
+    // Attach listeners to the buttons
+    document.getElementById('filter-btn').addEventListener('click', applyFilters);
+    document.getElementById('clear-btn').addEventListener('click', clearFilters);
+
+    // --- ADD THESE LINES FOR LIVE SEARCH ---
+    
+    // When user types in the name box, filter immediately
+    document.getElementById('filter-name').addEventListener('input', applyFilters);
+    
+    // When user selects a category, filter immediately
+    document.getElementById('filter-category').addEventListener('change', applyFilters);
+    
+    // When user picks a date, filter immediately
+    document.getElementById('filter-date').addEventListener('input', applyFilters);
+  };
+</script>
+
+<script src="index_role.js"></script>
 <script src="createevent.js"></script>
 <script src="signout.js"></script>
 </body>

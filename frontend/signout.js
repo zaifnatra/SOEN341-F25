@@ -1,4 +1,5 @@
 fetch('/session-status')
+
   .then(res => res.json())
   .then(data => {
     const container = document.getElementById('auth-btn-container');

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -28,31 +29,22 @@
   <!-- Oversight -->
   <div id="oversight" class="content active">
     <h2>Pending Organizer Accounts</h2>
-    <table>
-      <tr>
-        <th>Organizer Name</th>
-        <th>Date/Time</th>
-        <th>Actions</th>
-      </tr>
-      <tr>
-        <td>John Doe</td>
-        <td>2025-10-02 14:30</td>
-        <td>
-          <button class="approve" onclick="approveRow(this)">Approve</button>
-          <button class="reject" onclick="rejectRow(this)">Reject</button>
-          <button class="view">View Details</button>
-        </td>
-      </tr>
-      <tr>
-        <td>Jane Smith</td>
-        <td>2025-10-02 15:10</td>
-        <td>
-          <button class="approve" onclick="approveRow(this)">Approve</button>
-          <button class="reject" onclick="rejectRow(this)">Reject</button>
-          <button class="view">View Details</button>
-        </td>
-      </tr>
-    </table>
+<table id="pending-organizers-table">
+  <thead>
+    <tr>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Request Type</th>
+      <th>Event (if any)</th>
+      <th>Date Submitted</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Filled dynamically -->
+  </tbody>
+</table>
+
   </div>
 
   <!-- Analytics -->
@@ -61,64 +53,48 @@
     <div class="stats">
       <div class="stat-box">
         <h3>Total Events</h3>
-        <p>128</p>
+        <p id="total-events">Loading...</p>
       </div>
       <div class="stat-box">
         <h3>Tickets Issued</h3>
-        <p>2,350</p>
+        <p id="tickets-issued">Loading...</p>
       </div>
       <div class="stat-box">
         <h3>Participation Trend</h3>
-        <p style="color: green;">+12%</p>
+        <p id="participation-trend">Loading...</p>
       </div>
     </div>
     <h3 style="margin-top:20px;">Events & Tickets</h3>
-    <table>
+    <table id="name-and-tickets-claimed">
+      <thead>
       <tr>
         <th>Event Name</th>
         <th>Tickets Claimed</th>
       </tr>
-      <tr>
-        <td>Hackathon 2025</td>
-        <td>450</td>
-      </tr>
-      <tr>
-        <td>Spring Concert</td>
-        <td>800</td>
-      </tr>
+      </thead>
+      <tbody>
+        <!-- Filled dynamically -->
+      </tbody>
     </table>
   </div>
 
-  <!-- Management -->
-  <div id="management" class="content">
-    <h2>Organizations</h2>
-    <table>
+<!-- Management -->
+<div id="management" class="content">
+  <h2>All User Accounts</h2>
+  <table id="all-users-table">
+    <thead>
       <tr>
-        <th>Organization</th>
-        <th>Members</th>
-        <th>Roles</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Role</th>
         <th>Actions</th>
       </tr>
-      <tr>
-        <td>Tech Club</td>
-        <td>25</td>
-        <td>President, VP, Member</td>
-        <td>
-          <button class="view">View</button>
-          <button class="edit">Edit</button>
-        </td>
-      </tr>
-      <tr>
-        <td>Art Society</td>
-        <td>12</td>
-        <td>Chair, Member</td>
-        <td>
-          <button class="view">View</button>
-          <button class="edit">Edit</button>
-        </td>
-      </tr>
-    </table>
-  </div>
+    </thead>
+    <tbody>
+      <!-- Filled dynamically -->
+    </tbody>
+  </table>
+</div>
 
    
     <div id="auth-btn-container"></div>

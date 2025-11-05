@@ -4,12 +4,13 @@ const path = require('path');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const QRCode = require('qrcode'); //DUMMY QR CODE
+const QRCode = require('qrcode');
 const archiver = require("archiver");
 const { ObjectId } = require("mongodb");
 const { Buffer } = require("buffer");
+const PDFDocument = require('pdfkit');
 
-// Directory where QR codes are saved
+//saving the QR codes to local direcotry
 const QR_CODES_DIR = path.join(__dirname, "qrcodes");
 const app = express();
 
@@ -68,6 +69,7 @@ app.get('/signin', (req, res) => {
 
 /* ---------------- USER ROUTES ---------------- */
 
+//function that handles creating an account 
 app.post('/createAccount', async (req, res) => {
   const { email, username, password } = req.body;
   try {
@@ -76,7 +78,7 @@ app.post('/createAccount', async (req, res) => {
       return res.send("Email already exists.");
     }
 
-    const newUser = { email, username, password };
+    const newUser = { email, username, password, role: "student" };
     await usersCollection.insertOne(newUser);
     console.log("New User created:", newUser);
 
@@ -87,6 +89,7 @@ app.post('/createAccount', async (req, res) => {
   }
 });
 
+//handles logging in
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -109,6 +112,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
+//handles logging out
 app.get('/logout', (req, res) => {
   req.session.logoutMessage = "You have been logged out.";
   req.session.user = null;
@@ -117,6 +121,7 @@ app.get('/logout', (req, res) => {
   });
 });
 
+//handles express session
 app.get('/session-status', (req, res) => {
   const loggedIn = !!req.session.user;
   const logoutMessage = req.session.logoutMessage || null;
@@ -124,6 +129,7 @@ app.get('/session-status', (req, res) => {
   res.json({ loggedIn, logoutMessage });
 });
 
+//redirect to main.html after signing in successfully
 app.get('/main.html', (req, res) => {
   if (!req.session.user) {
     return res.redirect('/signin.html');
@@ -131,6 +137,7 @@ app.get('/main.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'main.html'));
 });
 
+//debugging in terminal that lists user accounts found in mongodb 
 app.get('/listUsers', async (req, res) => {
   try {
     const users = await usersCollection.find().toArray();
@@ -143,6 +150,7 @@ app.get('/listUsers', async (req, res) => {
   }
 });
 
+//getting the account of the logged in user
 app.get('/user-profile', (req, res) => {
   if (req.session && req.session.user) {
     // Only send safe fields
@@ -174,8 +182,159 @@ app.get('/admindashboard', requireLogin, (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'admindashboard.html'));
 });
 
+app.post('/request-organizer', async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ message: "Not logged in" });
+  }
+
+  const { requests } = req.body; // array of { type, eventId }
+  const userId = req.session.user.id;
+
+  if (!requests || !Array.isArray(requests) || requests.length === 0) {
+    return res.status(400).json({ message: "No requests provided." });
+  }
+
+  try {
+    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+
+    if (!user.organizerRequests) {
+      user.organizerRequests = [];
+    }
+
+    // Add each request as a separate entry
+    requests.forEach(reqItem => {
+      user.organizerRequests.push({
+        type: reqItem.type,
+        eventId: reqItem.eventId || null,
+        status: "pending",
+        submittedAt: new Date()
+      });
+    });
+
+    await usersCollection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { organizerRequests: user.organizerRequests } }
+    );
+
+    res.json({ message: "Organizer requests submitted!" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error submitting requests" });
+  }
+});
+
+//handles when a student account makes a request to become an organizer account
+app.get('/pending-organizers', async (req, res) => {
+  try {
+    // Flatten each request into individual objects for admin dashboard
+    const users = await usersCollection.find({ "organizerRequests.status": "pending" }).toArray();
+    const pendingRequests = [];
+
+    users.forEach(user => {
+      if (Array.isArray(user.organizerRequests)) {
+        user.organizerRequests.forEach(reqItem => {
+          if (reqItem.status === "pending") {
+            pendingRequests.push({
+              userId: user._id,
+              username: user.username,
+              email: user.email,
+              type: reqItem.type,
+              eventId: reqItem.eventId,
+              submittedAt: reqItem.submittedAt
+            });
+          }
+        });
+      }
+    });
+
+    res.json(pendingRequests);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error retrieving pending requests" });
+  }
+});
+
+//handles when admin approves of student account request to become an organizer account
+app.post('/approve-organizer', async (req, res) => {
+  const { userId, eventId } = req.body; // eventId identifies which request to approve
+  try {
+    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+    if (!user || !user.organizerRequests) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    const requestIndex = user.organizerRequests.findIndex(r =>
+      r.status === "pending" && r.eventId === (eventId || null)
+    );
+
+    if (requestIndex === -1) return res.status(404).json({ message: "Request not found" });
+
+    const request = user.organizerRequests[requestIndex];
+
+    // Update role
+    const newRole = "organizer";
+    await usersCollection.updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $set: {
+          role: newRole,
+          [`organizerRequests.${requestIndex}.status`]: "approved"
+        }
+      }
+    );
+
+    // If it's linked to an existing event, update event organizers
+    if (request.type === "existing" && request.eventId) {
+      const event = await eventsCollection.findOne({ _id: new ObjectId(request.eventId) });
+      if (event) {
+        let updatedOrganizers = [];
+        if (typeof event.organizer === "string") updatedOrganizers = [event.organizer, user.email];
+        else if (Array.isArray(event.organizer)) updatedOrganizers = [...new Set([...event.organizer, user.email])];
+        else updatedOrganizers = [user.email];
+
+        await eventsCollection.updateOne(
+          { _id: new ObjectId(request.eventId) },
+          { $set: { organizer: updatedOrganizers } }
+        );
+      }
+    }
+
+    res.json({ message: "Approved" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Approval failed" });
+  }
+});
+
+//when an organizer request gets rejected by admin
+app.post('/reject-organizer', async (req, res) => {
+  const { userId, eventId } = req.body;
+  try {
+    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+    if (!user || !user.organizerRequests) return res.status(404).json({ message: "Request not found" });
+
+    const requestIndex = user.organizerRequests.findIndex(r =>
+      r.status === "pending" && r.eventId === (eventId || null)
+    );
+    if (requestIndex === -1) return res.status(404).json({ message: "Request not found" });
+
+    await usersCollection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { [`organizerRequests.${requestIndex}.status`]: "rejected" } }
+    );
+
+    res.json({ message: "Rejected" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Rejection failed" });
+  }
+});
+
+
+
 /* ---------------- EVENT ROUTES ---------------- */
 
+//creating an event
 app.post('/createEvent', async (req, res) => {
   const { title, description, date, time, location, capacity, type } = req.body;
 
@@ -206,7 +365,7 @@ app.post('/createEvent', async (req, res) => {
 
     const newEvent = {
       title,
-      organizer, // <-- now uses logged-in organizer
+      organizer: [organizer],
       description,
       date,
       time,
@@ -216,7 +375,8 @@ app.post('/createEvent', async (req, res) => {
       qrCodes,
       scannedTickets: 0,
       attendanceRate: 0,
-      remainingTickets: parseInt(capacity)
+      remainingTickets: parseInt(capacity),
+      scans: []
     };
 
     const insertResult = await eventsCollection.insertOne(newEvent);
@@ -229,7 +389,7 @@ app.post('/createEvent', async (req, res) => {
   }
 });
 
-
+//gets all the events to display on events page
 app.get('/events', async (req, res) => {
   try {
     const events = await eventsCollection.find().toArray();
@@ -241,12 +401,37 @@ app.get('/events', async (req, res) => {
   }
 });
 
-// Get events created by the logged-in organizer, including QR code images
+// Delete an event (admin only)
+app.delete("/delete-event/:eventId", async (req, res) => {
+  try {
+    if (!req.session.user || req.session.user.role !== "admin") {
+      return res.status(403).json({ message: "Unauthorized: admin only." });
+    }
+
+    const eventId = req.params.eventId;
+    if (!ObjectId.isValid(eventId)) {
+      return res.status(400).json({ message: "Invalid event ID." });
+    }
+
+    const result = await eventsCollection.deleteOne({ _id: new ObjectId(eventId) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "Event not found." });
+    }
+
+    res.json({ message: "Event deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting event:", error);
+    res.status(500).json({ message: "Server error deleting event." });
+  }
+});
+
+//shows which events the student has signed up to
 app.get('/my-events', requireLogin, async (req, res) => {
   try {
     const organizerEmail = req.session.user.email;
     const myEvents = await eventsCollection
-      .find({ organizer: organizerEmail })
+      .find({ organizer: { $in: [organizerEmail] } })
       .project({
         title: 1,
         date: 1,
@@ -262,6 +447,7 @@ app.get('/my-events', requireLogin, async (req, res) => {
   }
 });
 
+//downloading qr code
 app.get("/download-qrcodes/:eventId", async (req, res) => {
   try {
     const eventId = req.params.eventId.trim();
@@ -304,6 +490,7 @@ app.get("/download-qrcodes/:eventId", async (req, res) => {
   }
 });
 
+//handles ticket validation and ensures that the same ticket can't be scanned twice
 app.post('/validate-ticket', async (req, res) => {
   try {
     const { qrData } = req.body; // text from decoded QR
@@ -326,12 +513,35 @@ app.post('/validate-ticket', async (req, res) => {
     if (ticket.scanned) {
       return res.json({ valid: false, message: "Ticket has already been used." });
     }
+
+    // Prevent joining event over capacity (no subtraction)
+    const remainingBefore = Number.isInteger(event.remainingTickets)
+      ? event.remainingTickets
+      : (event.capacity - (event.scannedTickets || 0));
+
+    if (remainingBefore <= 0) {
+      return res.json({ valid: false, message: "Event is already at full capacity." });
+    }
     
-        // Mark QR as scanned
-    await eventsCollection.updateOne(
-      { _id: new ObjectId(event._id), "qrCodes.code": qrData },
+    // Mark QR as scanned
+    const markResult = await eventsCollection.updateOne(
+      { _id: new ObjectId(event._id), "qrCodes.code": qrData, "qrCodes.scanned": false },
       { $set: { "qrCodes.$.scanned": true } }
     );
+
+// record scan timestamp and increment counts atomically
+   const now = new Date().toISOString();
+   await eventsCollection.updateOne(
+     { _id: new ObjectId(event._id) },
+     {
+       $inc: { scannedTickets: 1 },
+       $push: { scans: now },
+       $set: {
+         remainingTickets: event.capacity - ((event.scannedTickets || 0) + 1),
+         attendanceRate: ((event.scannedTickets || 0) + 1) / event.capacity * 100
+       }
+     }
+  );
         // Increment scannedTickets count
     const updatedScannedCount = (event.scannedTickets || 0) + 1;
     const newRemaining = event.capacity - updatedScannedCount;
@@ -360,9 +570,254 @@ app.post('/validate-ticket', async (req, res) => {
   }
 });
 
+// Export attendee list CSV for a single event
+app.get("/export-event-csv/:eventId", requireLogin, async (req, res) => {
+  try {
+    const eventId = req.params.eventId.trim();
+    if (!ObjectId.isValid(eventId)) return res.status(400).send("Invalid event ID");
+
+    const event = await eventsCollection.findOne({ _id: new ObjectId(eventId) });
+    if (!event) return res.status(404).send("Event not found");
+
+    // Only allow organizers of the event to export
+    const organizerEmail = req.session.user.email;
+    const isOrganizer = Array.isArray(event.organizer)
+      ? event.organizer.includes(organizerEmail)
+      : event.organizer === organizerEmail;
+
+    if (!isOrganizer) return res.status(403).send("Unauthorized");
+
+    // Build CSV: attendee email, ticket status
+    const csvRows = [["Email", "Ticket Status"]];
+    event.qrCodes.forEach((qr) => {
+      if (qr.assignedTo) {
+        csvRows.push([
+          qr.assignedTo,
+          qr.scanned ? "attended" : "did not attend"
+        ]);
+      }
+    });
+
+    const csvContent = csvRows.map((r) => r.join(",")).join("\n");
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", `attachment; filename="${event.title.replace(/\s+/g, "_")}_attendees.csv"`);
+    res.send(csvContent);
+
+  } catch (err) {
+    console.error("Error exporting event CSV:", err);
+    res.status(500).send("Server error exporting CSV");
+  }
+});
+
+
 //express route for organizer dashboard
 app.get('/organizerdashboard', requireLogin, (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'organizerdashboard.html'));
+});
+
+
+
+/* ---------------- ADMIN USER MANAGEMENT ---------------- */
+
+// Fetch all users (for the Organizations tab)
+app.get("/all-users", async (req, res) => {
+  try {
+    const users = await usersCollection.find({}, { projection: { password: 0 } }).toArray(); // hide passwords
+    res.json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ message: "Error retrieving users." });
+  }
+});
+
+// Delete a specific user by ID
+app.delete("/delete-user/:userId", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const result = await usersCollection.deleteOne({ _id: new ObjectId(userId) });
+
+    if (result.deletedCount === 1) {
+      res.json({ success: true, message: "User deleted successfully." });
+    } else {
+      res.status(404).json({ success: false, message: "User not found." });
+    }
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ success: false, message: "Error deleting user." });
+  }
+});
+
+/* ---------------- STUDENT EVENT MANAGEMENT ---------------- */
+// Student signs up for an event
+app.post('/signup-event', requireLogin, async (req, res) => {
+  try {
+    const { eventId } = req.body;
+    const userEmail = req.session.user.email;
+
+    if (!eventId) {
+      return res.status(400).json({ success: false, message: "Missing event ID." });
+    }
+
+    const event = await eventsCollection.findOne({ _id: new ObjectId(eventId) });
+    if (!event) {
+      return res.status(404).json({ success: false, message: "Event not found." });
+    }
+
+    // Check if event still has space
+    if (event.remainingTickets <= 0) {
+      return res.status(400).json({ success: false, message: "Event is full." });
+    }
+
+    // Prevent duplicate signups
+    const user = await usersCollection.findOne({ email: userEmail });
+    const myEvents = user.myEvents || [];
+    if (myEvents.includes(eventId)) {
+      return res.status(400).json({ success: false, message: "You already signed up for this event." });
+    }
+
+    // Find an unused QR code (scanned = false and not assigned)
+    const availableQr = event.qrCodes.find(q => !q.assignedTo && !q.scanned);
+    if (!availableQr) {
+      return res.status(400).json({ success: false, message: "No available QR codes." });
+    }
+
+    // Mark QR as assigned to this user
+    await eventsCollection.updateOne(
+      { _id: new ObjectId(eventId), "qrCodes.code": availableQr.code },
+      { $set: { "qrCodes.$.assignedTo": userEmail } }
+    );
+
+    // Add event to user's list
+    await usersCollection.updateOne(
+      { email: userEmail },
+      {
+        $addToSet: { myEvents: eventId },
+        $push: { assignedTickets: { eventId, qrCode: availableQr.code } }
+      }
+    );
+
+    // Update remaining tickets
+    await eventsCollection.updateOne(
+      { _id: new ObjectId(eventId) },
+      { $inc: { remainingTickets: -1 } }
+    );
+
+    res.json({ success: true, message: `Signed up for ${event.title}`, qrCode: availableQr.code });
+  } catch (error) {
+    console.error("Error signing up for event:", error);
+    res.status(500).json({ success: false, message: "Server error signing up for event." });
+  }
+});
+// Get all events a logged-in user signed up for
+app.get('/my-signedup-events', requireLogin, async (req, res) => {
+  try {
+    const userEmail = req.session.user.email;
+
+    // Get user's signed-up event IDs
+    const user = await usersCollection.findOne({ email: userEmail });
+    if (!user || !user.myEvents || user.myEvents.length === 0) {
+      return res.json([]);
+    }
+
+    // Fetch event details for each ID
+    const eventIds = user.myEvents.map(id => new ObjectId(id));
+    const events = await eventsCollection
+      .find({ _id: { $in: eventIds } })
+      .project({
+        title: 1,
+        date: 1,
+        time: 1,
+        location: 1,
+        description: 1,
+        type: 1
+      })
+      .toArray();
+
+    res.json(events);
+  } catch (error) {
+    console.error("Error fetching signed-up events:", error);
+    res.status(500).json({ message: "Error fetching your events." });
+  }
+});
+
+// Remove signed-up event
+app.post('/remove-signedup-event', requireLogin, async (req, res) => {
+  try {
+    const { eventId } = req.body;
+    const userEmail = req.session.user.email;
+
+    if (!eventId) {
+      return res.status(400).json({ success: false, message: "Missing event ID." });
+    }
+
+    const user = await usersCollection.findOne({ email: userEmail });
+    if (!user || !user.myEvents || !user.myEvents.includes(eventId)) {
+      return res.status(404).json({ success: false, message: "Event not found in your list." });
+    }
+
+    // Remove event from user's myEvents
+    await usersCollection.updateOne(
+      { email: userEmail },
+      { $pull: { myEvents: eventId } }
+    );
+
+    // Increment the remaining tickets for the event
+    await eventsCollection.updateOne(
+      { _id: new ObjectId(eventId) },
+      { $inc: { remainingTickets: 1 } }
+    );
+
+    res.json({ success: true, message: "Successfully removed from your events." });
+  } catch (error) {
+    console.error("Error removing event:", error);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+});
+
+app.get('/generate-ticket/:eventId', async (req, res) => {
+  try {
+    const eventId = req.params.eventId.trim();
+    const userEmail = req.session.user?.email || "unknown@concordia.ca";
+
+    const event = await eventsCollection.findOne({ _id: new ObjectId(eventId) });
+    if (!event) return res.status(404).send('Event not found');
+
+    // Find the QR code assigned to this user
+    const assignedQr = event.qrCodes.find(q => q.assignedTo === userEmail);
+    if (!assignedQr) {
+      return res.status(400).send("No ticket found for this user.");
+    }
+
+    const qrCodeDataUrl = assignedQr.image;
+
+    const doc = new PDFDocument({ size: "A4", margin: 50 });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="ticket_${event.title}.pdf"`);
+    doc.pipe(res);
+
+    doc.fontSize(22).text("Concordia University Campus Event Ticket", { align: "center" });
+    doc.moveDown(1.5);
+
+    doc.fontSize(16).text(`Event: ${event.title}`);
+    doc.text(`Date: ${event.date}`);
+    doc.text(`Location: ${event.location}`);
+    doc.text(`Registered To: ${userEmail}`);
+    doc.text(`QR Code ID: ${assignedQr.code}`);
+    doc.moveDown(1.5);
+
+    // Embed assigned QR code image
+    const qrImage = qrCodeDataUrl.replace(/^data:image\/png;base64,/, "");
+    const qrBuffer = Buffer.from(qrImage, "base64");
+    doc.image(qrBuffer, { fit: [150, 150], align: "center" });
+
+    doc.moveDown(2);
+    doc.fontSize(10).text("Please present this QR code at event entry.", { align: "center" });
+
+    doc.end();
+  } catch (err) {
+    console.error('Error generating ticket:', err);
+    res.status(500).send('Server error generating ticket.');
+  }
 });
 
 
