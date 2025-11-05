@@ -324,19 +324,34 @@ body {
     }
 
 /* added css code for help.html page*/
+/* ===== UPDATED HELP BOX (matches WELCOME BOX style) ===== */
 .help-box {
-  background: #f1f1f1;
-  border-radius: 15px;
+  background: #ffffff;
+  border: 1.5px solid #ddd;
+  border-radius: 20px;
   padding: 40px;
-  width: 70%;          
-  max-width: 900px;    
-  margin: 40px auto;   
-  text-align: left;    
+  width: 70%;
+  max-width: 900px;
+  margin: 40px auto;
+  text-align: left;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+.help-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.help-box h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #083d8c;
+  font-weight: bold;
+}
 
     h1 {
-      color: #1e40af;
+      color: #083d8c;
       margin: 20px;
     }
     .tabs {
@@ -439,20 +454,25 @@ body {
       margin: 10px 0;
     }
 
-    .signup-btn {
-      margin-top: 15px;
-      padding: 10px 20px;
-      background-color: #083d8c;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
 
-    .signup-btn:hover {
-      background-color: #052a61;
-    }
+.signup-btn {
+  text-shadow: none !important;
+  box-shadow: none !important;
+  background: #083d8c !important;
+  color: #ffffff !important;
+  border: 1px solid #083d8c!important;
+  transition: background-color 0.3s ease, color 0.3s ease !important;
+}
+
+.signup-btn:hover,
+.signup-btn:focus {
+  background: #1774cc !important;
+  color: #ffffff !important;
+  border: 1px solid #1774cc!important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
 
      /* ===== SEARCH BOX WITH ICON ===== */
 .search-box {
@@ -818,3 +838,204 @@ input {
     padding: 20px;
   }
 }
+<<<<<<< Updated upstream
+=======
+.fancy-btn {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  display: inline-block;
+  text-align: center;
+  font-weight: 600;
+  padding: 0.4em 1.2em;
+  border: 2px solid #1a5ed3;
+  border-radius: 4px;
+  position: relative;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.15);
+  color: #1a5ed3;
+  text-decoration: none;
+  transition: 0.3s ease all;
+  z-index: 1;
+  background: transparent;
+  cursor: pointer;
+  margin-right: 8px;
+  margin-top: 5px;
+}
+
+.fancy-btn:before {
+  transition: 0.4s all ease;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  right: 50%;
+  bottom: 0;
+  opacity: 0;
+  content: "";
+  background-color: #1a5ed3;
+  z-index: -1;
+}
+
+.fancy-btn:hover,
+.fancy-btn:focus {
+  color: white;
+}
+
+.fancy-btn:hover:before,
+.fancy-btn:focus:before {
+  left: 0;
+  right: 0;
+  opacity: 1;
+}
+
+.fancy-btn:active {
+  transform: scale(0.95);
+}
+
+.signup-btn {
+  padding: 10px 20px;
+  text-transform: uppercase;
+  border-radius: 8px;
+  font-size: 17px;
+  font-weight: 500;
+  color: #05050580;
+  text-shadow: none;
+  background: transparent;
+  cursor: pointer;
+  box-shadow: transparent;
+  border: 1px solid #05050580;
+  transition: 0.5s ease;
+  user-select: none;
+  display: block;
+  margin: 0 auto;
+}
+
+.signup-btn:hover,
+.signup-btn:focus {
+  color: #ffffff;
+  background: #008cff;
+  border: 1px solid #008cff;
+  text-shadow: 0 0 5px #ffffff, 0 0 10px #ffffff, 0 0 20px #ffffff;
+  box-shadow: 0 0 5px #008cff, 0 0 20px #008cff, 0 0 50px #008cff, 0 0 100px #008cff;
+}
+
+.filter-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 15px 20px;
+  margin: 20px auto;
+  background: #ffffff;
+  border-radius: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  width: 70%;
+  max-width: 800px;
+  transition: 0.3s ease;
+}
+
+.filter-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+}
+
+.filter-container input,
+.filter-container select {
+  border-radius: 20px;
+  border: 1.8px solid #ccc;
+  padding: 8px 14px;
+  font-size: 14px;
+  color: #083d8c;
+  background: #f9f9f9;
+  transition: 0.2s ease;
+  outline: none;
+}
+
+.filter-container input:focus,
+.filter-container select:focus {
+  border-color: #083d8c;
+  box-shadow: 0 0 5px rgba(8, 61, 140, 0.3);
+  background: #ffffff;
+}
+
+.filter-button {
+  border: none;
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  background: #083d8c;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.filter-button:hover {
+  background: #0b58c0;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(8, 61, 140, 0.25);
+}
+
+.filter-button:active {
+  transform: scale(0.97);
+  background: #062c63;
+}
+
+/* RECOMMENDATION PAGE STYLE*/
+
+    .page-title {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #083d8c;
+    }
+
+    .recommend-section {
+      background-color: #ffffff;
+      margin: 40px auto;
+      width: 80%;
+      border-radius: 25px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      padding: 25px 40px;
+    }
+
+    .recommend-section h2 {
+      color: #083d8c;
+      font-size: 22px;
+      border-bottom: 2px solid #cfd9e8;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+
+    .event-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: flex-start;
+    }
+
+    .event-card {
+      background-color: #f8f8f8;
+      border-radius: 20px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+      padding: 20px;
+      width: 250px;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+
+    .event-card:hover {
+      transform: scale(1.03);
+    }
+
+    .event-card h3 {
+      margin: 10px 0 5px 0;
+      color: #003366;
+    }
+
+    .event-card p {
+      color: #555;
+      font-size: 14px;
+    }
+>>>>>>> Stashed changes
