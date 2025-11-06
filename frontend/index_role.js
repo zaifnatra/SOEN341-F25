@@ -1,13 +1,17 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  
   const dashboardLink = document.getElementById("dashboard-link");
-  if (!dashboardLink) return;
+  const forYouLink = document.getElementById("for-you-link"); 
+  
+  // If neither link exists (no navbar), exit quietly
+  if (!dashboardLink && !forYouLink) return;
 
-  // Disable link until ready
-  dashboardLink.style.pointerEvents = "none";
-  dashboardLink.style.opacity = "0.6";
+  // Disable dashboard until we know user role
+  if (dashboardLink) {
+    dashboardLink.style.pointerEvents = "none";
+    dashboardLink.style.opacity = "0.6";
+  }
 
-  // Try sessionStorage first (faster, persists across reloads)
+  // Try reading cached userRole from sessionStorage
   let userRole = sessionStorage.getItem("userRole");
 
   async function getUserRoleFromServer() {
@@ -19,24 +23,41 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
+    // Fetch role if not cached
     if (!userRole) userRole = await getUserRoleFromServer();
 
-    // Hide dashboard from student NavBar
-    if (userRole === "student") {
-      dashboardLink.style.display = "none";
+    // === DASHBOARD VISIBILITY AND LINK ===
+    if (dashboardLink) {
+      if (userRole === "student") {
+        // Students don’t have dashboards
+        dashboardLink.style.display = "none";
+      } else {
+        // Organizers/Admins keep dashboard visible
+        let dashboardHref = "/account";
+        if (userRole === "organizer") dashboardHref = "/organizerdashboard";
+        else if (userRole === "admin") dashboardHref = "/admindashboard";
+
+        dashboardLink.href = dashboardHref;
+        dashboardLink.style.display = "inline-block";
+        dashboardLink.style.pointerEvents = "auto";
+        dashboardLink.style.opacity = "1";
+      }
     }
 
-    let dashboardHref = "/account";
-    if (userRole === "organizer") dashboardHref = "/organizerdashboard";
-    else if (userRole === "admin") dashboardHref = "/admindashboard";
+    // FOR YOU VISIBILITY
+    if (forYouLink) {
+      if (userRole === "student") {
+        forYouLink.style.display = "inline-block";
+      } else {
+        forYouLink.style.display = "none";
+      }
+    }
 
-    dashboardLink.href = dashboardHref;
-    dashboardLink.style.pointerEvents = "auto";
-    dashboardLink.style.opacity = "1";
   } catch (err) {
     console.warn("Role detection failed:", err);
-    
-    //Hide dashboard from logged out users
-    dashboardLink.style.display = "none";
+
+    // Hide restricted links for logged-out users
+    if (dashboardLink) dashboardLink.style.display = "none";
+    if (forYouLink) forYouLink.style.display = "none";
   }
 });

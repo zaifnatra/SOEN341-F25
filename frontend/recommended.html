@@ -70,7 +70,6 @@
       <a href="index.html">HOME</a>
       <a href="/account">ACCOUNT</a>
       <a href="/eventspage">EVENTS</a>
-      <a id="dashboard-link" href="#">DASHBOARD</a>
       <a href="recommended.html" class="active">FOR YOU</a>
       <a href="help.html">HELP</a>
   </div>
@@ -122,6 +121,28 @@
       </div>
     </div>
   </div>
+
+  <script>
+async function checkAccess() {
+  try {
+    const res = await fetch("/user-profile");
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+
+    // Redirect if not a student
+    if (!data.role || data.role !== "student") {
+      alert("Access denied. Only students can view this page.");
+      window.location.href = "signin.html"; // redirect to sign-in
+    }
+  } catch (err) {
+    console.error("Access check failed:", err);
+    window.location.href = "signin.html";
+  }
+}
+
+checkAccess();
+</script>
+
 
 </body>
 </html>

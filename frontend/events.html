@@ -15,7 +15,7 @@
     <a href="/account">ACCOUNT</a>
     <a href="/eventspage" class="active">EVENTS</a>
     <a id="dashboard-link" href="#">DASHBOARD</a>
-    <a href="recommended.html">FOR YOU</a>
+    <a href="recommended.html" id="for-you-link" style="display:none;">FOR YOU</a>
     <a href="help.html">HELP</a>
   </div>
 
@@ -32,8 +32,6 @@
     </select>
     
     <input type="date" id="filter-date">
-    
-    <button id="filter-btn" class="filter-button">Filter</button>
     <button id="clear-btn" class="filter-button">Clear</button>
   </div>
 
@@ -291,7 +289,6 @@
     loadEvents(); // Fetch data and render the list
 
     // Attach listeners to the buttons
-    document.getElementById('filter-btn').addEventListener('click', applyFilters);
     document.getElementById('clear-btn').addEventListener('click', clearFilters);
 
     // --- ADD THESE LINES FOR LIVE SEARCH ---
