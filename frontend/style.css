@@ -375,19 +375,34 @@ body {
     }
 
 /* added css code for help.html page*/
+/* ===== UPDATED HELP BOX (matches WELCOME BOX style) ===== */
 .help-box {
-  background: #f1f1f1;
-  border-radius: 15px;
+  background: #ffffff;
+  border: 1.5px solid #ddd;
+  border-radius: 20px;
   padding: 40px;
-  width: 70%;          
-  max-width: 900px;    
-  margin: 40px auto;   
-  text-align: left;    
+  width: 70%;
+  max-width: 900px;
+  margin: 40px auto;
+  text-align: left;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+.help-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.help-box h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #083d8c;
+  font-weight: bold;
+}
 
     h1 {
-      color: #1e40af;
+      color: #083d8c;
       margin: 20px;
     }
     .tabs {
@@ -490,20 +505,25 @@ body {
       margin: 10px 0;
     }
 
-    .signup-btn {
-      margin-top: 15px;
-      padding: 10px 20px;
-      background-color: #083d8c;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
 
-    .signup-btn:hover {
-      background-color: #052a61;
-    }
+.signup-btn {
+  text-shadow: none !important;
+  box-shadow: none !important;
+  background: #083d8c !important;
+  color: #ffffff !important;
+  border: 1px solid #083d8c!important;
+  transition: background-color 0.3s ease, color 0.3s ease !important;
+}
+
+.signup-btn:hover,
+.signup-btn:focus {
+  background: #1774cc !important;
+  color: #ffffff !important;
+  border: 1px solid #1774cc!important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
 
      /* ===== SEARCH BOX WITH ICON ===== */
 .search-box {
@@ -947,26 +967,140 @@ input {
   box-shadow: 0 0 5px #008cff, 0 0 20px #008cff, 0 0 50px #008cff, 0 0 100px #008cff;
 }
 
-
+/* SEARCH & FILTER BAR*/
+/* ===== CENTERED SEARCH & FILTER BAR ===== */
 .filter-container {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  padding: 15px;
-  background-color: #f4f4f4;
-  border-radius: 8px;
-  margin: 15px auto;
-  width: 90%;
-  max-width: 1000px;
-  flex-wrap: wrap; /* Allows filters to wrap on small screens */
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: #ffffff;
+  border-radius: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 18px 25px;
+  width: fit-content; /* shrink to content */
+  margin: 40px auto;  /* centers it horizontally */
+  transition: all 0.3s ease;
 }
 
-.filter-container input,
-.filter-container select {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+.filter-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
 }
+
+/* Inputs & dropdown */
+.filter-container input[type="text"],
+.filter-container input[type="date"],
+.filter-container select {
+  border-radius: 25px;
+  border: 1.8px solid #ccc;
+  padding: 10px 16px;
+  font-size: 15px;
+  color: #083d8c;
+  background: #f9f9f9;
+  outline: none;
+  transition: 0.2s ease;
+}
+
+.filter-container input:focus,
+.filter-container select:focus {
+  border-color: #083d8c;
+  box-shadow: 0 0 6px rgba(8, 61, 140, 0.3);
+  background: #ffffff;
+}
+
+/* Blue buttons */
+.filter-button {
+  border: none;
+  border-radius: 25px;
+  padding: 10px 20px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  background: #083d8c;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.filter-button:hover {
+  background: #0b58c0;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(8, 61, 140, 0.25);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .filter-container {
+    width: 90%;
+    flex-direction: column;
+  }
+
+  .filter-container input,
+  .filter-container select,
+  .filter-button {
+    width: 100%;
+  }
+}
+
+/* RECOMMENDATION PAGE STYLE*/
+
+    .page-title {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #083d8c;
+    }
+
+    .recommend-section {
+      background-color: #ffffff;
+      margin: 40px auto;
+      width: 80%;
+      border-radius: 25px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      padding: 25px 40px;
+    }
+
+    .recommend-section h2 {
+      color: #083d8c;
+      font-size: 22px;
+      border-bottom: 2px solid #cfd9e8;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+
+    .event-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: flex-start;
+    }
+
+    .event-card {
+      background-color: #f8f8f8;
+      border-radius: 20px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+      padding: 20px;
+      width: 250px;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+
+    .event-card:hover {
+      transform: scale(1.03);
+    }
+
+    .event-card h3 {
+      margin: 10px 0 5px 0;
+      color: #003366;
+    }
+
+    .event-card p {
+      color: #555;
+      font-size: 14px;
+    }
+
 
 .filter-button {
   padding: 8px 12px;
@@ -980,3 +1114,5 @@ input {
 .filter-button:hover {
   background-color: #003366;
 }
+
+

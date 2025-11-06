@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -10,39 +9,49 @@
 <body>
   <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
 
+ 
   <div class="navbar">
-      <a href="index.html">HOME</a>
-       <a href="/account">ACCOUNT</a>
-       <a href="/eventspage" class="active">EVENTS</a>
-       <a id="dashboard-link" href="#">DASHBOARD</a>
-       <a href="help.html">HELP</a>
+    <a href="index.html">HOME</a>
+    <a href="/account">ACCOUNT</a>
+    <a href="/eventspage" class="active">EVENTS</a>
+    <a id="dashboard-link" href="#">DASHBOARD</a>
+    <a href="recommended.html">FOR YOU</a>
+    <a href="help.html">HELP</a>
   </div>
+
 
   <div class="filter-container">
-  <input type="text" id="filter-name" placeholder="Search Event Name...">
-  <select id="filter-category">
-    <option value="">All Categories</option>
+    <input 
+      type="text" 
+      id="filter-name" 
+      placeholder="Search through all our campus events"
+    >
+    
+    <select id="filter-category">
+      <option value="">All Categories</option>
     </select>
-  <input type="date" id="filter-date">
-  <button id="filter-btn" class="filter-button">Filter</button>
-  <button id="clear-btn" class="filter-button">Clear</button>
-</div>
-
-<div class="events-container" id="events-list">
-  <p>Loading events...</p>
-</div>
-
-
-  <div id="auth-btn-container"></div>
-
-  <div class="events-container" id="events-list">
+    
+    <input type="date" id="filter-date">
+    
+    <button id="filter-btn" class="filter-button">Filter</button>
+    <button id="clear-btn" class="filter-button">Clear</button>
   </div>
 
-   <footer>
-   <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
- </footer>
+  
+  <div class="events-container" id="events-list">
+    <p>Loading events...</p>
+  </div>
 
-<script>
+
+  <footer>
+    <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
+  </footer>
+
+  <script src="index_role.js"></script>
+  <script src="createevent.js"></script>
+  <script src="signout.js"></script>
+
+  <script>
   // Global variables to store our data
   let allEvents = [];
   let userRole = null;
