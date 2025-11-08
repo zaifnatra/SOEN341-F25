@@ -301,6 +301,18 @@
     
     // When user picks a date, filter immediately
     document.getElementById('filter-date').addEventListener('input', applyFilters);
+
+    // --- LIVE SEARCH ---
+  const params = new URLSearchParams(window.location.search);
+  const query = params.get('search');
+  if (query) {
+    const filterInput = document.getElementById('filter-name');
+    if (filterInput) {
+      filterInput.value = query;   // prefill the filter input with the homepage query
+      applyFilters();              // automatically filter events by that name
+    }
+  }
+
   };
 </script>
 
