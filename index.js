@@ -14,6 +14,9 @@ const PDFDocument = require('pdfkit');
 const QR_CODES_DIR = path.join(__dirname, "qrcodes");
 const app = express();
 
+// interest recommendation prompts
+const EVENT_CATEGORIES = ['Academic', 'Social', 'Workshop', 'Sports', 'Career', 'Arts', 'Other'];
+
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
@@ -78,7 +81,7 @@ app.post('/createAccount', async (req, res) => {
       return res.send("Email already exists.");
     }
 
-    const newUser = { email, username, password, role: "student" };
+    const newUser = { email, username, password, role: "student", interests: interest || [] };
     await usersCollection.insertOne(newUser);
     console.log("New User created:", newUser);
 
@@ -151,14 +154,141 @@ app.get('/listUsers', async (req, res) => {
 });
 
 //getting the account of the logged in user
-app.get('/user-profile', (req, res) => {
-  if (req.session && req.session.user) {
-    // Only send safe fields
-    const { username, email, role } = req.session.user;
-    res.json({ username, email, role });
-  } else {
-    res.status(401).json({ error: "Not logged in" });
-  }
+app.get('/user-profile', async (req, res) => {
+  if (req.session && req.session.user) {
+    try {
+      const user = await usersCollection.findOne({ _id: new ObjectId(req.session.user.id) });
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Send back the safe fields
+      const { username, email, role, interests } = user;
+      res.json({ 
+        username, 
+        email, 
+        role, 
+        interests: interests || [],
+        favoritedEvents: user.favoritedEvents || [] // <-- ADD THIS LINE
+      });
+
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      res.status(500).json({ error: "Server error" });
+    }
+  } else {
+    res.status(401).json({ error: "Not logged in" });
+  }
+});
+
+// Add this route after your '/user-profile' route
+app.post('/api/update-interests', requireLogin, async (req, res) => {
+    const {
+        interests
+    } = req.body; // Expecting an array of strings
+    const userId = req.session.user.id;
+
+    if (!Array.isArray(interests)) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid data format."
+        });
+    }
+
+    try {
+        const result = await usersCollection.updateOne({
+            _id: new ObjectId(userId)
+        }, {
+            $set: {
+                interests: interests
+            }
+        });
+
+        if (result.modifiedCount === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found or interests unchanged."
+            });
+        }
+
+        res.json({
+            success: true,
+            message: "Interests updated!"
+        });
+
+    } catch (error) {
+        console.error("Error updating interests:", error);
+        res.status(500).json({
+            success: false,
+            message: "Server error."
+        });
+    }
+});
+
+// Add this route after your '/events' route
+app.get('/api/recommendations', requireLogin, async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    let recommendedEvents = [];
+
+    const declaredInterests = user.interests || [];
+    const favoritedEventIds = (user.favoritedEvents || []).map(id => new ObjectId(id));
+
+    // --- NEW LOGIC: Find categories from favorited events ---
+    let favoritedCategories = [];
+    if (favoritedEventIds.length > 0) {
+      const favoritedEvents = await eventsCollection.find({
+        _id: { $in: favoritedEventIds }
+      }).project({ type: 1 }).toArray();
+      
+      // Get all unique categories from their favorites
+      favoritedCategories = [...new Set(favoritedEvents.map(event => event.type))];
+    }
+
+    // Combine declared interests with interests from favorites
+    const combinedInterests = [...new Set([...declaredInterests, ...favoritedCategories])];
+    
+    // Filter out "Other" if other specific interests exist
+    let finalInterests = combinedInterests;
+    if (finalInterests.length > 1) {
+      finalInterests = finalInterests.filter(interest => interest !== 'Other');
+    }
+
+    const hasSpecificInterests = finalInterests.length > 0 && !(finalInterests.length === 1 && finalInterests[0] === 'Other');
+
+    if (hasSpecificInterests) {
+      // --- Case 1: Show events matching their combined interests ---
+      const interestRegex = finalInterests.map(interest => new RegExp(`^${interest}$`, 'i'));
+
+      recommendedEvents = await eventsCollection.find({
+        type: { $in: interestRegex },
+        date: { $gte: today },
+        _id: { $nin: favoritedEventIds } // Don't recommend events they ALREADY favorited
+      }).toArray();
+
+    } else {
+      // --- Case 2: No interests or "Other" selected ---
+      recommendedEvents = await eventsCollection.find({
+      date: { $gte: today }
+      })
+      .sort({ remainingTickets: 1 })
+      .limit(10)
+      .toArray();
+    }
+
+    res.json(recommendedEvents);
+
+  } catch (error) {
+    console.error("Error fetching recommendations:", error);
+    res.status(500).json({ message: "Server error." });
+  }
 });
 
 // Middleware to protect pages that require login
@@ -176,6 +306,10 @@ app.get('/account', requireLogin, (req, res) => {
 
 app.get('/eventspage', requireLogin, (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'events.html'));
+});
+
+app.get('/recommended', requireLogin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'recommended.html'));
 });
 
 app.get('/admindashboard', requireLogin, (req, res) => {
@@ -288,9 +422,9 @@ app.post('/approve-organizer', async (req, res) => {
       const event = await eventsCollection.findOne({ _id: new ObjectId(request.eventId) });
       if (event) {
         let updatedOrganizers = [];
-        if (typeof event.organizer === "string") updatedOrganizers = [event.organizer, user.email];
-        else if (Array.isArray(event.organizer)) updatedOrganizers = [...new Set([...event.organizer, user.email])];
-        else updatedOrganizers = [user.email];
+        if (typeof event.organizer === "string") updatedOrganizers = [event.organizer, user.username];
+        else if (Array.isArray(event.organizer)) updatedOrganizers = [...new Set([...event.organizer, user.username])];
+        else updatedOrganizers = [user.username];
 
         await eventsCollection.updateOne(
           { _id: new ObjectId(request.eventId) },
@@ -336,7 +470,7 @@ app.post('/reject-organizer', async (req, res) => {
 
 //creating an event
 app.post('/createEvent', async (req, res) => {
-  const { title, description, date, time, location, capacity, type } = req.body;
+  const { title, description, date, time, location, capacity, type, paymentStatus } = req.body;
 
   if (!title || !date || !time || !location) {
     return res.status(400).json({ message: "Missing required fields." });
@@ -348,7 +482,7 @@ app.post('/createEvent', async (req, res) => {
       return res.status(403).json({ message: "You must be logged in to create events." });
     }
 
-    const organizer = req.session.user.email || req.session.user.username;
+    const organizer = req.session.user.username;
 
     const existing = await eventsCollection.findOne({ title });
     if (existing) {
@@ -371,7 +505,8 @@ app.post('/createEvent', async (req, res) => {
       time,
       location,
       capacity: parseInt(capacity),
-      type,
+      type: type,
+      paymentStatus: paymentStatus,
       qrCodes,
       scannedTickets: 0,
       attendanceRate: 0,
@@ -708,6 +843,83 @@ app.post('/signup-event', requireLogin, async (req, res) => {
     res.status(500).json({ success: false, message: "Server error signing up for event." });
   }
 });
+
+//favoriting toggle
+app.post('/api/toggle-favorite', requireLogin, async (req, res) => {
+  const { eventId } = req.body;
+  const userId = req.session.user.id;
+
+  if (!eventId) {
+    return res.status(400).json({ success: false, message: "Missing event ID." });
+  }
+
+  try {
+    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+    if (!user) {
+      return res.status(404).json({success: false, message: "User not found."})
+    }
+    const favorites = user.favoritedEvents || [];
+
+    let isFavorited;
+
+    // Check if the event is already favorited
+    if (favorites.includes(eventId)) {
+      // It is favorited, so REMOVE it
+      await usersCollection.updateOne(
+        { _id: new ObjectId(userId) },
+        { $pull: { favoritedEvents: eventId } }
+      );
+      isFavorited = false;
+    } else {
+      // It's not favorited, so ADD it
+      await usersCollection.updateOne(
+        { _id: new ObjectId(userId) },
+        { $addToSet: { favoritedEvents: eventId } } // $addToSet prevents duplicates
+      );
+      isFavorited = true;
+    }
+
+    res.json({ success: true, isFavorited: isFavorited });
+
+  } catch (error) {
+    console.error("Error toggling favorite:", error);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+});
+
+// my fav
+// Add this new route near your other API routes
+app.get('/api/my-favorites', requireLogin, async (req, res) => {
+  try {
+    const user = await usersCollection.findOne({ _id: new ObjectId(req.session.user.id) });
+    
+    // --- THIS IS THE FIX ---
+    if (!user) {
+      // This stops the crash if the user's session is invalid
+      return res.json([]); // Just return an empty list
+    }
+    // --- END OF FIX ---
+
+    const favoritedEventIds = (user.favoritedEvents || []).map(id => new ObjectId(id));
+
+    if (favoritedEventIds.length === 0) {
+      // User has no favorites, just return an empty array
+      return res.json([]);
+    }
+
+    // Fetch the full event details for all favorited IDs
+    const favoritedEvents = await eventsCollection.find({
+      _id: { $in: favoritedEventIds }
+    }).toArray();
+    
+    res.json(favoritedEvents);
+
+  } catch (error) {
+    console.error("Error fetching favorited events:", error);
+    res.status(500).json({ message: "Server error." });
+  }
+});
+
 // Get all events a logged-in user signed up for
 app.get('/my-signedup-events', requireLogin, async (req, res) => {
   try {

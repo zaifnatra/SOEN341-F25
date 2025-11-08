@@ -230,8 +230,8 @@ body {
 }
 
 .options {
-  margin-top: 200px;     
-  margin-left: 130px;     
+  margin-top: 0;     
+  margin-left: 0;     
   display: flex;
   gap: 100px;            
   flex-wrap: wrap;
@@ -306,7 +306,6 @@ body {
       margin: 50px auto;
       display: flex;
       flex-direction: column;
-      gap: 20px;
     }
 
     .form-group input,
@@ -325,7 +324,6 @@ body {
       display: flex;
       gap: 29px;
       flex-wrap: wrap;
-      margin-bottom: 18px;
     }
 
     .form-row .form-group {
@@ -1116,3 +1114,70 @@ input {
 }
 
 
+.content-box {
+  padding: 20px;
+  margin-top: 20px; /* Adds space above the box */
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+}
+
+
+/* --- NEW Account Page Hub Layout --- */
+
+/* This is the main container, replacing .account-layout */
+.account-hub {
+  display: flex;         /* Arrange items horizontally */
+  flex-wrap: wrap;       /* Wrap to next line if no space */
+  justify-content: center; /* Center the boxes on the row */
+  gap: 24px;             /* Space between boxes */
+  padding: 24px;         /* Space around the whole hub */
+  width: 90%;
+  max-width: 1400px;
+  margin: 20px auto 100px auto; /* 100px bottom margin for footer */
+}
+
+/* This is the base style for ALL boxes in the hub */
+.account-hub > div {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+  padding: 20px 25px;
+  
+  /* --- This is the layout magic --- */
+  flex-grow: 1;           /* Allow boxes to grow */
+  flex-basis: 350px;      /* Each box will start at 350px wide */
+  max-width: 400px;       /* Stop them from getting too wide */
+  min-height: 400px;      /* FORCE all boxes to be the same height */
+  height: fit-content;    /* Allow forms to grow taller if needed */
+}
+
+/* Special styling for the icon boxes */
+.option-box {
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+  
+  /* This centers the icon/text VERTICALLY inside the 400px box */
+  display: flex; 
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.option-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+}
+.option-box a {
+  text-decoration: none;
+  color: #083d8c;
+}
+.option-box img {
+  width: 100px;
+  height: auto;
+}
+.option-box p {
+  font-weight: bold;
+  font-size: 1.1em;
+  margin-top: 10px;
+}

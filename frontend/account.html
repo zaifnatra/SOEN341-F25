@@ -1,174 +1,218 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Concordia University Campus Event Ticketing - Account</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Concordia University Campus Event Ticketing - Account</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
+  <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
 
-  <div class="navbar">
-      <a href="index.html">HOME</a>
-      <a href="/account">ACCOUNT</a>
-      <a href="/eventspage">EVENTS</a>
-      <a id="dashboard-link" href="#">DASHBOARD</a>
-       <a href="recommended.html" id="for-you-link" style="display:none;">FOR YOU</a>
-      <a href="help.html">HELP</a>
+  <div class="navbar">
+      <a href="index.html">HOME</a>
+      <a href="/account">ACCOUNT</a>
+      <a href="/eventspage">EVENTS</a>
+      <a id="dashboard-link" href="#">DASHBOARD</a>
+      <a href="/recommended" id="for-you-link" style="display:none;">FOR YOU</a>
+      <a href="help.html">HELP</a>
+  </div>
+  
+<div class="account-hub">
+
+    <div class="profile-box" id="profile-box-container">
+    <h2>MY PROFILE</h2>
+    <div class="profile-icon">👤</div>
+    <p id="profile-name">Loading...</p>
+    <p id="profile-email">Loading...</p>
+    <p id="profile-role">Loading...</p>
+  </div>
+
+  <div id="my-interests-container" style="display:none;"> <h2>MY INTERESTS</h2>
+    <form id="interests-form">
+      <div class="interests-container" style="text-align: left; max-width: 300px; margin: 10px auto; padding-left: 20px;">
+        <label><input type="checkbox" id="Academic" value="Academic"> Academic</label><br>
+        <label><input type="checkbox" id="Social" value="Social"> Social</label><br>
+        <label><input type="checkbox" id="Workshop" value="Workshop"> Workshop</label><br>
+        <label><input type="checkbox" id="Sports" value="Sports"> Sports</label><br>
+        <label><input type="checkbox" id="Career" value="Career"> Career</label><br>
+        <label><input type="checkbox" id="Arts" value="Arts"> Arts</label><br>
+        <label><input type="checkbox" id="Other" value="Other"> Other</label><br>
+      </div>
+      <button type="submit" id="btn" style="width: auto; padding: 10px 20px;">Update Interests</button>
+    </form>
+    <p id="interest-update-msg" style="color: green;"></p>
   </div>
-  
 
-<div class="account-layout">
-  <div class="profile-box">
-    <h2>MY PROFILE</h2>
-    <div class="profile-icon">👤</div>
-    <p id="profile-name">Name</p>
-    <p id="profile-email">Email</p>
-    <p id="profile-role">Role</p>
+  <div class="option-box" id="my-events-option" style="display:none;">
+    <a href="MyEvents.html">
+      <img src="calendar.png" alt="events">
+      <p>MY EVENTS</p>
+    </a>
+  </div>
+
+  <div class="option-box" id="create-event-option" style="display:none;">
+    <a href="create-event.html">
+      <img src="create-event.png" alt="create event">
+      <p>CREATE EVENT</p>
+    </a>
   </div>
 
-  <div class="acc-main-content">
-    <div class="left-column">
-      <div class="options">
-        <div class="option" id="my-events-option">
-          <img src="calendar.png" alt="events">
-          <p>MY EVENTS</p>
-        </div>
+    <div id="organizer-request-section" style="display:none;">
+    <h3>Request Organizer Access</h3>
+    <label>
+      <input type="radio" name="orgRequestType" value="new" checked>
+      I want to become a new Organizer.
+    </label>
+    <br>
+    <label>
+      <input type="radio" name="orgRequestType" value="existing">
+      I want to organize existing events:
+    </label>
+    <div class="existing-list-wrapper">
+      <select id="existingEventsSelect" multiple size="5" disabled>
+      </select>
+    </div>
+    <br>
+    <button id="submitOrgRequest">Submit Request</button>
+  </div>
 
-        <div class="option">
-          <a href="create-event.html">
-            <img src="create-event.png" alt="create event">
-            <p>CREATE EVENT</p>
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <aside class="right-column">
-      <div id="organizer-request-section" style="display:none;">
-        <h3>Request Organizer Access</h3>
-
-        <label>
-          <input type="radio" name="orgRequestType" value="new" checked>
-          I want to become a new Organizer (not linked to any event).
-        </label>
-        <br>
-        <label>
-          <input type="radio" name="orgRequestType" value="existing">
-          I want to become an Organizer for existing events:
-        </label>
-
-        <!-- moved select into a wrapper so it can be aligned bottom-right bc yes-->
-        <div class="existing-list-wrapper">
-          <select id="existingEventsSelect" multiple size="5" disabled>
-            <!-- Multiple events selectable -->
-          </select>
-        </div>
-
-        <br>
-        <button id="submitOrgRequest">Submit Request</button>
-      </div>
-    </aside>
-  </div>
-</div>
-
-<script>
-  
-fetch('/user-profile')
-  .then(res => res.json())
-  .then(user => {
-    if (user.role === "student" || user.role === "organizer") {
-      document.getElementById('organizer-request-section').style.display = "block";
-      loadExistingEvents(user.role, user.email);
-    }
-  });
-
- function loadExistingEvents(role, userEmail) {
-  fetch('/events')
-    .then(res => res.json())
-    .then(events => {
-      const select = document.getElementById('existingEventsSelect');
-      select.innerHTML = "";
-
-      events.forEach(event => {
-        // Filter out events already organized by this user
-        if (role === "organizer" && event.organizer && event.organizer.includes(userEmail)) {
-          return; // skip events already owned
-        }
-        const option = document.createElement('option');
-        option.value = event._id;
-        option.textContent = event.title;
-        select.appendChild(option);
-      });
-    });
-}
-  // Radio buttons behavior
-  const radios = document.querySelectorAll('input[name="orgRequestType"]');
-  const eventsSelect = document.getElementById('existingEventsSelect');
-  radios.forEach(radio => {
-    radio.addEventListener('change', () => {
-      eventsSelect.disabled = radio.value !== 'existing';
-    });
-  });
-
-  // Submit request
-  document.getElementById('submitOrgRequest').addEventListener('click', () => {
-    const type = document.querySelector('input[name="orgRequestType"]:checked').value;
-    const selectedOptions = Array.from(eventsSelect.selectedOptions).map(opt => opt.value);
-
-    let requests = [];
-    if (type === "new") {
-      requests.push({ type: "new", eventId: null });
-    } else if (type === "existing" && selectedOptions.length > 0) {
-      requests = selectedOptions.map(eventId => ({ type: "existing", eventId }));
-    } else {
-      return alert("Select at least one event.");
-    }
-
-    fetch('/request-organizer', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ requests })
-    })
-    .then(res => res.json())
-    .then(data => alert(data.message))
-    .catch(() => alert("Request failed"));
-  });
-</script>
-
-
-<footer>
-  <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
+</div> <footer>
+  <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
 </footer>
 
 <div id="auth-btn-container"></div>
 <script src="signout.js"></script>
 <script src="index_role.js"></script>
 
-<!-- Hide create event from non-admin/organ users--> 
-<script> 
-  fetch('/user-profile') 
-    .then(res => res.json()) 
-    .then(user => { 
-      
-    // If student, show organizer request and make MY EVENTS a link
-      if (user.role === "student") {
-        document.getElementById('organizer-request-section').style.display = "block";
-        loadExistingEvents();
 
-        // Make MY EVENTS a link to MyEvents.html
-        const myEventsOption = document.querySelector('.option');
-        myEventsOption.innerHTML = `<a href="MyEvents.html"><img src="calendar.png" alt="events"><p>MY EVENTS</p></a>`;
-      }
+<script>
+  // --- Helper function to load events for the dropdown ---
+  function loadExistingEvents(role, userEmail) {
+    fetch('/events')
+      .then(res => res.json())
+      .then(events => {
+        const select = document.getElementById('existingEventsSelect');
+        select.innerHTML = "";
+        events.forEach(event => {
+          if (role === "organizer" && event.organizer && event.organizer.includes(userEmail)) {
+            return;
+          }
+          const option = document.createElement('option');
+          option.value = event._id;
+          option.textContent = event.title;
+          select.appendChild(option);
+        });
+      });
+  }
 
-      if (!["organizer", "admin"].includes(user.role)) { 
-        document.querySelector('a[href="create-event.html"]').style.display = "none"; 
-      } 
-    }) 
-    .catch(() => { 
-      document.querySelector('a[href="create-event.html"]').style.display = "none"; 
-    }); 
+  // --- Main script to run when page loads ---
+  document.addEventListener("DOMContentLoaded", () => {
+    
+    // 1. Fetch user data
+    fetch('/user-profile')
+      .then(res => res.json())
+      .then(user => {
+        
+        // --- PART A: Populate "My Profile" Box ---
+        document.getElementById('profile-name').textContent = user.username || 'Username';
+        document.getElementById('profile-email').textContent = user.email || 'Email';
+        document.getElementById('profile-role').textContent = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Role';
+
+        // --- PART B: Populate "My Interests" Box (if it's visible) ---
+        if (user.interests && user.interests.length > 0) {
+          user.interests.forEach(interest => {
+            const checkbox = document.getElementById(interest);
+            if (checkbox) checkbox.checked = true;
+          });
+        }
+
+        // --- PART C: Show/Hide Widgets based on NEW Role Logic ---
+        const role = user.role;
+        
+        if (role === 'admin') {
+          // Admin: My Profile, Create Event
+          document.getElementById('create-event-option').style.display = 'flex';
+        
+        } else if (role === 'organizer') {
+          // Organizer: My Profile, My Events, Create Event, Request
+          document.getElementById('my-events-option').style.display = 'flex';
+          document.getElementById('create-event-option').style.display = 'flex';
+          document.getElementById('organizer-request-section').style.display = 'block';
+          loadExistingEvents(user.role, user.email);
+        
+        } else if (role === 'student') {
+          // Student: My Profile, My Events, My Interests, Request
+          document.getElementById('my-events-option').style.display = 'flex';
+          document.getElementById('my-interests-container').style.display = 'block';
+          document.getElementById('organizer-request-section').style.display = 'block';
+          loadExistingEvents(user.role, user.email);
+        }
+      })
+      .catch(err => {
+        console.error("Failed to load user profile", err);
+        document.getElementById('profile-name').textContent = 'Error';
+      });
+
+    // 2. Add functionality to "My Interests" form
+    const form = document.getElementById("interests-form");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const selectedInterests = [];
+      form.querySelectorAll('input[type="checkbox"]:checked').forEach(box => {
+        selectedInterests.push(box.value);
+      });
+
+      try {
+        const res = await fetch('/api/update-interests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ interests: selectedInterests })
+        });
+        const data = await res.json();
+        const msgEl = document.getElementById("interest-update-msg");
+        if (res.ok) {
+          msgEl.textContent = "Interests updated successfully!";
+          msgEl.style.color = "green";
+        } else {
+          msgEl.textContent = data.message || "Failed to update.";
+          msgEl.style.color = "red";
+        }
+      } catch (err) {
+        document.getElementById("interest-update-msg").textContent = "An error occurred.";
+	  }
+    });
+
+    // 3. Add functionality to "Request Organizer" form
+    const radios = document.querySelectorAll('input[name="orgRequestType"]');
+    const eventsSelect = document.getElementById('existingEventsSelect');
+    radios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        eventsSelect.disabled = radio.value !== 'existing';
+     });
+    });
+
+    document.getElementById('submitOrgRequest').addEventListener('click', () => {
+      const type = document.querySelector('input[name="orgRequestType"]:checked').value;
+      const selectedOptions = Array.from(eventsSelect.selectedOptions).map(opt => opt.value);
+      let requests = [];
+      if (type === "new") {
+        requests.push({ type: "new", eventId: null });
+} else if (type === "existing" && selectedOptions.length > 0) {
+        requests = selectedOptions.map(eventId => ({ type: "existing", eventId }));
+      } else {
+        return alert("Select at least one event.");
+      }
+      fetch('/request-organizer', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+BODY: JSON.stringify({ requests })
+      })
+      .then(res => res.json())
+      .then(data => alert(data.message))
+      .catch(() => alert("Request failed"));
+    });
+  });
 </script>
 
 </body>

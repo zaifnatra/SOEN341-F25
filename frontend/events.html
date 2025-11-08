@@ -15,27 +15,38 @@
     <a href="/account">ACCOUNT</a>
     <a href="/eventspage" class="active">EVENTS</a>
     <a id="dashboard-link" href="#">DASHBOARD</a>
-    <a href="recommended.html" id="for-you-link" style="display:none;">FOR YOU</a>
+    <a href="/recommended" id="for-you-link" style="display:none;">FOR YOU</a>
     <a href="help.html">HELP</a>
   </div>
 
    <div id="auth-btn-container"></div>
 
 
-  <div class="filter-container">
-    <input 
-      type="text" 
-      id="filter-name" 
-      placeholder="Search through all our campus events"
-    >
-    
-    <select id="filter-category">
-      <option value="">All Categories</option>
-    </select>
-    
-    <input type="date" id="filter-date">
-    <button id="clear-btn" class="filter-button">Clear</button>
-  </div>
+<div class="filter-container">
+  <input 
+      type="text" 
+      id="filter-name" 
+      placeholder="Search by event name..."
+  >
+  
+  <input type="date" id="filter-date">
+  
+  <select id="filter-category">
+    <option value="">All Categories</option>
+  </select>
+  
+  <select id="filter-payment">
+    <option value="">All Prices</option>
+    <option value="Free">Free</option>
+    <option value="Paid">Paid</option>
+  </select>
+  
+  <select id="filter-organizer">
+    <option value="">All Organizers</option>
+  </select>
+  
+  <button id="clear-btn" class="filter-button">Clear</button>
+</div>
 
   
   <div class="events-container" id="events-list">
@@ -51,278 +62,355 @@
   <script src="createevent.js"></script>
   <script src="signout.js"></script>
 
-  <script>
-  // Global variables to store our data
-  let allEvents = [];
-  let userRole = null;
+ <script>
+  // Global variables to store our data
+  let allEvents = [];
+  let userRole = null;
+  let userFavorites = []; // Made global
 
-  async function getUserRole() {
-    try {
-      const res = await fetch("/user-profile");
-      if (!res.ok) return null;
-      const data = await res.json();
-      return data.role || null;
-    } catch {
-      return null;
-    }
-  }
+  async function getUserRole() {
+    try {
+      const res = await fetch("/user-profile");
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.role || null;
+    } catch {
+      return null;
+    }
+  }
 
-  /**
-   * Populates the category filter dropdown
-   */
-  function populateFilters(events) {
-    const categorySelect = document.getElementById("filter-category");
-    // Clear existing options (except the "All")
-    categorySelect.innerHTML = '<option value="">All Categories</option>';
-    
-    // Get all unique categories from the events
-    const categories = [...new Set(events.map(ev => ev.type))];
-    
-    categories.forEach(category => {
-      if (category) { // Avoid adding 'undefined' or null
-        const option = document.createElement("option");
-        option.value = category;
-        option.textContent = category;
-        categorySelect.appendChild(option);
-      }
-    });
-  }
+function populateFilters(events) {
+    const categorySelect = document.getElementById("filter-category");
+    const orgSelect = document.getElementById("filter-organizer");
 
-  /**
-   * This function now just renders a given list of events
-   */
-  function renderEvents(eventsToRender, role) {
-    const eventsList = document.getElementById("events-list");
-    eventsList.innerHTML = ""; // Clear existing list
+    categorySelect.innerHTML = '<option value="">All Categories</option>';
+    orgSelect.innerHTML = '<option value="">All Organizers</option>';
+    
+    const allCategories = new Set();
+    const allOrganizers = new Set();
+    
+    events.forEach(ev => {
+      if (ev.type) {
+        allCategories.add(ev.type);
+      }
+      
+      if (Array.isArray(ev.organizer)) {
+        ev.organizer.forEach(org => allOrganizers.add(org));
+      } else if (ev.organizer) {
+        allOrganizers.add(ev.organizer);
+      }
+    });
+    
+    allCategories.forEach(category => {
+      if (category) {
+        const option = document.createElement("option");
+        option.value = category;
+        option.textContent = category;
+        categorySelect.appendChild(option);
+      }
+    });
+    
+    allOrganizers.forEach(org => {
+      if (org) {
+        const option = document.createElement("option");
+        option.value = org;
+        option.textContent = org; // This will now be the username
+        orgSelect.appendChild(option);
+      }
+    });
+  }
 
-    if (!Array.isArray(eventsToRender) || eventsToRender.length === 0) {
-      eventsList.innerHTML = "<p>No events found matching your criteria.</p>";
-      return;
-    }
+  /**
+   * This function now just renders a given list of events
+   */
+  function renderEvents(eventsToRender, role, favorites) {
+    const eventsList = document.getElementById("events-list");
+    eventsList.innerHTML = ""; 
 
-    eventsToRender.forEach((ev) => {
-      const card = document.createElement("div");
-      card.classList.add("event-card");
+    if (!Array.isArray(eventsToRender) || eventsToRender.length === 0) {
+      eventsList.innerHTML = "<p>No events found matching your criteria.</p>";
+      return;
+    }
 
-      // Make sure all fields exist, providing defaults
-      const title = ev.title || "Untitled Event";
-      const date = ev.date || "No date";
-      const time = ev.time || "No time";
-      const location = ev.location || "No location";
-      const description = ev.description || "";
-      const capacity = ev.capacity || 0;
-      const type = ev.type || "N/A";
-      const remaining = ev.remainingTickets ?? capacity;
+    eventsToRender.forEach((ev) => {
+      const card = document.createElement("div");
+      card.classList.add("event-card");
+
+      const title = ev.title || "Untitled Event";
+      const date = ev.date || "No date";
+      const time = ev.time || "No time";
+      const location = ev.location || "No location";
+      const description = ev.description || "";
+      const capacity = ev.capacity || 0;
+      const type = ev.type || "N/A";
+      const remaining = ev.remainingTickets ?? capacity;
+
+      card.innerHTML = `
+        <h3>${title}</h3>
+        <p><strong>Date:</strong> ${date}</p>
+        <p><strong>Time:</strong> ${time}</p>
+        <p><strong>Location:</strong> ${location}</p>
+        <p>${description}</p>
+        <p><strong>Tickets:</strong> ${capacity}</p>
+        <p><strong>Remaining:</strong> ${remaining}</p>
+        <p><strong>Category:</strong> ${ev.type || 'N/A'}</p>
+        <p><strong>Price:</strong> ${ev.paymentStatus || 'Free'}</p>
+      `;
+
+      if (ev.qrCodes && ev.qrCodes.length > 0) {
+        const qrImg = document.createElement("img");
+        qrImg.src = ev.qrCodes[0].image;
+        qrImg.alt = "QR Code sample";
+        qrImg.classList.add("qr-sample");
+        qrImg.style.width = "100px";
+        qrImg.style.marginTop = "8px";
+        qrImg.style.display = "block";
+        qrImg.style.margin = "10px auto 5px";
+        card.appendChild(qrImg);
+      }
+
+      // --- STUDENT FAVORITE BUTTON ---
+      if (role === "student") {
+        const favBtn = document.createElement("button");
+        
+        let isFavorited = favorites.includes(ev._id);
+        favBtn.textContent = isFavorited ? "❤️ Unfavorite" : "🤍 Favorite";
+        favBtn.classList.add("favorite-btn");
+        favBtn.style.marginTop = "5px";
+        favBtn.style.display = "block";
+        favBtn.style.margin = "5px auto";
+
+        favBtn.addEventListener("click", async () => {
+          try {
+            const res = await fetch("/api/toggle-favorite", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ eventId: ev._id })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+              isFavorited = data.isFavorited;
+              favBtn.textContent = isFavorited ? "❤️ Unfavorite" : "🤍 Favorite";
+              
+              if (isFavorited) {
+                userFavorites.push(ev._id);
+              } else {
+                const index = userFavorites.indexOf(ev._id);
+                if (index > -1) userFavorites.splice(index, 1);
+              }
+           }
+           } catch (err) {
+            console.error("Error toggling favorite:", err);
+            alert("Could not update favorite.");
+          }
+        });
+        
+        card.appendChild(favBtn);
+      }
+
+      // --- STUDENT SIGNUP BUTTON ---
+      if (role === "student") {
+        const signUpBtn = document.createElement("button");
+        signUpBtn.textContent = "Sign Up";
+        signUpBtn.classList.add("signup-btn");
+        signUpBtn.style.display = "block";
+        signUpBtn.style.margin = "0 auto";
+
+        signUpBtn.addEventListener("click", async () => {
+          // --- SAFETY FIX: Check if paymentStatus exists before checking its case
+          const isFree = ev.paymentStatus && ev.paymentStatus.toLowerCase() === "free";
+          
+          if (isFree) {
+            try {
+              const res = await fetch("/signup-event", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ eventId: ev._id })
+              });
+              const data = await res.json();
+              alert(data.message);
+              
+              if (res.ok && data.success) {
+                ev.remainingTickets = (ev.remainingTickets ?? capacity) - 1;
+                applyFilters(); // Re-apply filters to update the card
+              }
+            } catch (err) {
+              console.error("Error signing up:", err);
+              alert("Error signing up for the event.");
+            }
+          } else {
+            // Assumes any event that isn't "Free" is paid
+            window.location.href = `/payment.html?eventId=${ev._id}`;
+          }
+_       });
+
+        card.appendChild(signUpBtn);
+      }
+
+      // --- ADMIN DELETE BUTTON ---
+      if (role === "admin") {
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "Delete Event";
+        delBtn.classList.add("delete-btn");
+        delBtn.style.marginTop = "10px";
+        delBtn.onclick = async () => {
+          if (confirm(`Delete event "${title}"?`)) {
+           try {
+              const res = await fetch(`/delete-event/${ev._id}`, {
+                method: "DELETE",
+              });
+              const data = await res.json();
+              alert(data.message);
+              allEvents = allEvents.filter(e => e._id !== ev._id);
+              applyFilters(); 
+            } catch (err) {
+              console.error("Error deleting event:", err);
+              alert("Failed to delete event.");
+            }
+          }
+        };
+        card.appendChild(delBtn);
+      }
+
+      eventsList.appendChild(card);
+    });
+  }
+
+  /**
+   * Fetches all data, stores it, and does the *first* render
+E  */
+  async function loadEvents() {
+    const eventsList = document.getElementById("events-list");
+    eventsList.innerHTML = "<p>Loading events...</p>";
+
+    try {
+      const [user, response] = await Promise.all([
+        fetch("/user-profile").then(res => res.json()),
+        fetch("/events")
+      ]);
+      
+      if (!response.ok) {
+          throw new Error(`Failed to fetch events: ${response.statusText}`);
+      }
+
+      const events = await response.json();
+
+      userRole = user.role;
+      userFavorites = user.favoritedEvents || [];
+      
+      if (Array.isArray(events)) {
+       allEvents = events; 
+      } else {
+          allEvents = [];
+      }
+
+      populateFilters(allEvents);
+      renderEvents(allEvents, userRole, userFavorites);
+
+    } catch (error) {
+      console.error("Error loading events:", error);
+      eventsList.innerHTML = "<p>Error fetching events. Please try again later.</p>";
+s   }
+  }
+
+/**
+   * This function filters the `allEvents` array and calls renderEvents
+   */
+  function applyFilters() {
+    const nameValue = document.getElementById("filter-name").value.toLowerCase();
+    const categoryValue = document.getElementById("filter-category").value;
+    const dateValue = document.getElementById("filter-date").value;
+    const paymentValue = document.getElementById("filter-payment").value;
+    const orgValue = document.getElementById("filter-organizer").value;
+
+    let filteredEvents = allEvents;
+
+    if (nameValue) {
+      filteredEvents = filteredEvents.filter(ev =>
+        ev.title && ev.title.toLowerCase().includes(nameValue)
+      );
+    }
+
+    if (categoryValue) {
+      filteredEvents = filteredEvents.filter(ev => ev.type === categoryValue);
+    }
+
+    if (dateValue) {
+      filteredEvents = filteredEvents.filter(ev => ev.date === dateValue);
+    }
+
+    if (paymentValue) {
+      filteredEvents = filteredEvents.filter(ev => ev.paymentStatus === paymentValue);
+   }
+
+    if (orgValue) {
+      filteredEvents = filteredEvents.filter(ev =>
+        (Array.isArray(ev.organizer) && ev.organizer.includes(orgValue)) ||
+        (ev.organizer === orgValue)
+      );
+    }
+
+    renderEvents(filteredEvents, userRole, userFavorites);
+  }
+
+/**
+   * Clears inputs and shows all events again
+   */
+  function clearFilters() {
+    document.getElementById("filter-name").value = "";
+    document.getElementById("filter-category").value = "";
+    document.getElementById("filter-date").value = "";
+    document.getElementById("filter-payment").value = "";
+    document.getElementById("filter-organizer").value = "";
+
+    renderEvents(allEvents, userRole, userFavorites);
+  }
+
+  window.onload = () => {
+    loadEvents(); 
+    checkUserInterests(); 
+
+    // Attach listeners to all filter elements
+    document.getElementById('clear-btn').addEventListener('click', clearFilters);
+    document.getElementById('filter-name').addEventListener('input', applyFilters);
+    document.getElementById('filter-category').addEventListener('change', applyFilters);
+    document.getElementById('filter-date').addEventListener('input', applyFilters);
+    document.getElementById('filter-payment').addEventListener('change', applyFilters);
+   document.getElementById('filter-organizer').addEventListener('change', applyFilters);
+
+    const params = new URLSearchParams(window.location.search);
+    const query = params.get('search');
+    if (query) {
+      const filterInput = document.getElementById('filter-name');
+      if (filterInput) {
+        filterInput.value = query;
+        applyFilters();
+      }
+    }
+  };
 
 
-      card.innerHTML = `
-        <h3>${title}</h3>
-        <p><strong>Date:</strong> ${date}</p>
-        <p><strong>Time:</strong> ${time}</p>
-        <p><strong>Location:</strong> ${location}</p>
-        <p>${description}</p>
-        <p><strong>Tickets:</strong> ${capacity} | ${type}</p>
-        <p><strong>Remaining:</strong> ${remaining}</p>
-      `;
+  async function checkUserInterests() {
+    try {
+      const asked = sessionStorage.getItem('askedForInterests');
+      if (asked) {
+          return;
+        }
 
-      if (ev.qrCodes && ev.qrCodes.length > 0) {
-        const qrImg = document.createElement("img");
-        qrImg.src = ev.qrCodes[0].image;
-        qrImg.alt = "QR Code sample";
-        qrImg.classList.add("qr-sample");
-        qrImg.style.width = "100px";
-        qrImg.style.marginTop = "8px";
-        qrImg.style.display = "block";
-        qrImg.style.margin = "10px auto 5px";
-        card.appendChild(qrImg);
-      }
+      const res = await fetch('/user-profile');
+      const user = await res.json();
 
-      // --- STUDENT SIGNUP BUTTON ---
-      if (role === "student") {
-        const signUpBtn = document.createElement("button");
-        signUpBtn.textContent = "Sign Up";
-        signUpBtn.classList.add("signup-btn");
-        signUpBtn.style.display = "block";
-        signUpBtn.style.margin = "0 auto";
-
-        signUpBtn.addEventListener("click", async () => {
-          if (ev.type.toLowerCase() === "free") {
-            try {
-              const res = await fetch("/signup-event", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ eventId: ev._id })
-              });
-              const data = await res.json();
-              alert(data.message);
-              
-              // Optimistic update: reduce remaining tickets on success
-              if (res.ok && data.success) {
-                  ev.remainingTickets = (ev.remainingTickets ?? capacity) - 1;
-                  renderEvents(allEvents.filter(e => e._id !== ev._id || e.remainingTickets > 0), userRole); // A bit complex, simpler to just re-render
-                  applyFilters(); // Re-apply filters to update the card
-              }
-
-            } catch (err) {
-              console.error("Error signing up:", err);
-              alert("Error signing up for the event.");
-            }
-          } else {
-            window.location.href = `/payment.html?eventId=${ev._id}`;
-          }
-        });
-
-        card.appendChild(signUpBtn);
-      }
-
-      // --- ADMIN DELETE BUTTON ---
-      if (role === "admin") {
-        const delBtn = document.createElement("button");
-        delBtn.textContent = "Delete Event";
-        delBtn.classList.add("delete-btn");
-        delBtn.style.marginTop = "10px";
-        delBtn.onclick = async () => {
-          if (confirm(`Delete event "${title}"?`)) {
-            try {
-              const res = await fetch(`/delete-event/${ev._id}`, {
-                method: "DELETE",
-              });
-              const data = await res.json();
-              alert(data.message);
-              // Remove event from local list and re-render
-              allEvents = allEvents.filter(e => e._id !== ev._id);
-              applyFilters(); // Re-apply filters to refresh list
-            } catch (err) {
-              console.error("Error deleting event:", err);
-              alert("Failed to delete event.");
-            }
-          }
-        };
-        card.appendChild(delBtn);
-      }
-
-      eventsList.appendChild(card);
-    });
-  }
-
-  /**
-   * Fetches all data, stores it, and does the *first* render
-   */
-  async function loadEvents() {
-    const eventsList = document.getElementById("events-list");
-    eventsList.innerHTML = "<p>Loading events...</p>";
-
-    try {
-      const [role, response] = await Promise.all([
-        getUserRole(),
-        fetch("/events")
-      ]);
-      
-      if (!response.ok) {
-          throw new Error(`Failed to fetch events: ${response.statusText}`);
-      }
-
-      const events = await response.json();
-
-      userRole = role; // Store role globally
-      
-      if (Array.isArray(events)) {
-          allEvents = events; // Store all events globally
-      } else {
-          allEvents = []; // Ensure it's an array
-      }
-
-      populateFilters(allEvents); // Populate the dropdown
-      renderEvents(allEvents, userRole); // Do the initial render
-
-    } catch (error) {
-      console.error("Error loading events:", error);
-      eventsList.innerHTML = "<p>Error fetching events. Please try again later.</p>";
-    }
-  }
-
-  /**
-   * This function filters the `allEvents` array and calls renderEvents
-   */
-  function applyFilters() {
-    // Get current filter values
-    const nameValue = document.getElementById("filter-name").value.toLowerCase();
-    const categoryValue = document.getElementById("filter-category").value;
-    const dateValue = document.getElementById("filter-date").value;
-
-    let filteredEvents = allEvents;
-
-    // Apply Event Name filter
-    if (nameValue) {
-      filteredEvents = filteredEvents.filter(ev =>
-        ev.title && ev.title.toLowerCase().includes(nameValue)
-      );
-    }
-
-    // Apply Category filter
-    if (categoryValue) {
-      filteredEvents = filteredEvents.filter(ev => ev.type === categoryValue);
-    }
-
-    // Apply Date filter
-    if (dateValue) {
-      filteredEvents = filteredEvents.filter(ev => ev.date === dateValue);
-    }
-
-    // Re-render the list with only the filtered events
-    renderEvents(filteredEvents, userRole);
-  }
-
-  /**
-   * Clears inputs and shows all events again
-   */
-  function clearFilters() {
-    document.getElementById("filter-name").value = "";
-    document.getElementById("filter-category").value = "";
-    document.getElementById("filter-date").value = "";
-
-    // Render the original, full list
-    renderEvents(allEvents, userRole);
-  }
-
-  // --- Main startup ---
-  // --- Main startup ---
-  window.onload = () => {
-    loadEvents(); // Fetch data and render the list
-
-    // Attach listeners to the buttons
-    document.getElementById('clear-btn').addEventListener('click', clearFilters);
-
-    // --- ADD THESE LINES FOR LIVE SEARCH ---
-    
-    // When user types in the name box, filter immediately
-    document.getElementById('filter-name').addEventListener('input', applyFilters);
-    
-    // When user selects a category, filter immediately
-    document.getElementById('filter-category').addEventListener('change', applyFilters);
-    
-    // When user picks a date, filter immediately
-    document.getElementById('filter-date').addEventListener('input', applyFilters);
-
-    // --- LIVE SEARCH ---
-  const params = new URLSearchParams(window.location.search);
-  const query = params.get('search');
-  if (query) {
-    const filterInput = document.getElementById('filter-name');
-    if (filterInput) {
-      filterInput.value = query;   // prefill the filter input with the homepage query
-      applyFilters();              // automatically filter events by that name
-    }
-  }
-
-  };
-</script>
-
-<script src="index_role.js"></script>
-<script src="createevent.js"></script>
-<script src="signout.js"></script>
-</body>
-</html>
-
-
-  
+      if (user.role === 'student' && (!user.interests || user.interests.length === 0)) {
+        sessionStorage.setItem('askedForInterests', 'true');
+        const wantsToUpdate = confirm("We see you haven't set your event interests yet. Would you like to set them now to get better recommendations?");
+        
+        if (wantsToUpdate) {
+          window.location.href = '/account';
+        }
+      }
+    } catch (err) {
+      console.error("Error checking user interests:", err);
+    }
+  }
+  </script>
