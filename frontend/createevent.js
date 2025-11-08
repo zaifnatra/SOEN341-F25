@@ -162,7 +162,7 @@ if (createBtn) {
 
         console.log("Server response:", data);
 
-        window.location.href = "eventspage.html"; // Redirect to events page
+        window.location.href = "/eventspage"; // Redirect to events page
 
       } else {
 
