@@ -1,179 +1,136 @@
 <!DOCTYPE html>
-
-
-
 <html lang="en">
-
 <head>
-
- <meta charset="UTF-8">
-
- <title>Concordia University - Create Event</title>
-
- <link rel="stylesheet" href="style.css">
-
+ <meta charset="UTF-8">
+ <title>Concordia University - Create Event</title>
+ <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-
-
-
-
- <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
-
-
-
- <div class="navbar">
-
-      <a href="index.html">HOME</a>
-
-       <a href="/account">ACCOUNT</a>
-
-       <a href="/eventspage">EVENTS</a>
-
-       <a id="dashboard-link" href="#">DASHBOARD</a>
-
-        <a href="/recommended" id="for-you-link" style="display:none;">FOR YOU</a>
-
-       <a href="help.html">HELP</a>
-
-  </div>
-
-  <div id="auth-btn-container"></div>
-
-
-
-
-
- <div class="form-container">
-
-   <div class="form-group">
-
-     <input id="event-title" type="text" placeholder="Title">
-
-   </div>
-
-
-
-
-
-   <div class="form-group">
-
-     <textarea id="event-description" placeholder="Description of the event"></textarea>
-
-   </div>
-
-
-
-
-
-   <div class="form-row">
-
-     <div class="form-group">
-
-       <input id="event-date" type="date" max="9999-12-31">
-
-     </div>
-
-     <div class="form-group">
-
-       <input id="event-time" type="time">
-
-     </div>
-
-     <div class="form-group">
-
-       <input id="event-location" type="text" placeholder="Location">
-
-     </div>
-
-   </div>
-
-
-
-
-
-   <div class="form-group">
-
-     <input id="event-capacity" type="number" placeholder="Ticket Capacity">
-
-   </div>
-
-
-
-   <div class="form-group">
-
-      <select id="event-category">
-
-        <option disabled selected>Select a Category</option>
-
-        <option value="Academic">Academic</option>
-
-        <option value="Social">Social</option>
-
-        <option value="Arts">Arts</option>
-
-        <option value="Sports">Sports</option>
-
-        <option value="Career">Career</option>
-
-        <option value="Workshop">Workshop</option>
-
-        <option value="Other">Other</option>
-
-      </select>
-
-    </div>
-
-
-
-   <div class="form-group">
-
-     <select id="event-payment-status">
-
-       <option disabled selected>FREE OR PAID event</option>
-
-       <option value="Free">Free</option>
-
-       <option value="Paid">Paid</option>
-
-     </select>
-
-   </div>
-
-
-
-
-
-   <div class="button-row">
-
-     <button id="create-btn" class="create-btn">+ CREATE</button>
-
-   </div>
-
- </div>
-
-
-
-  <footer>
-
-   <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
-
- </footer>
-
-
-
-
-
- <script src="createevent.js"></script>
-
- <script src="signout.js"></script>
-
- <script src="index_role.js"></script>
-
-
+ <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
+
+ <div class="navbar">
+      <a href="index.html">HOME</a>
+       <a href="/account">ACCOUNT</a>
+       <a href="/eventspage">EVENTS</a>
+       <a id="dashboard-link" href="#">DASHBOARD</a>
+        <a href="/recommended" id="for-you-link" style="display:none;">FOR YOU</a>
+       <a href="help.html">HELP</a>
+  </div>
+  <div id="auth-btn-container"></div>
+
+ <div class="form-container">
+      <div class="form-group">
+     <input id="event-title" type="text" placeholder="Event Title">
+   </div>
+
+      <div class="form-group">
+     <textarea id="event-description" placeholder="Description of the event"></textarea>
+   </div>
+
+      <div class="form-row">
+     <div class="form-group">
+       <label for="event-date">Start Date</label>
+       <input id="event-date" type="date" max="9999-12-31">
+     </div>
+     <div class="form-group">
+       <label for="event-end-date">End Date (Optional)</label>
+       <input id="event-end-date" type="date" max="9999-12-31">
+     </div>
+   </div>
+
+      <div class="form-row">
+     <div class="form-group">
+       <label for="event-time">Time</label>
+       <input id="event-time" type="time">
+     </div>
+          <div class="form-group" style="text-align: left; align-self: flex-end; padding-bottom: 12px;">
+       <label>
+         <input type="checkbox" id="event-all-day"> All Day
+       </label>
+     </div>
+   </div>
+   
+      <div class="form-group">
+     <input id="event-location" type="text" placeholder="Location">
+   </div>
+
+      <div class="form-row">
+     <div class="form-group">
+        <select id="event-category">
+          <option disabled selected>Select a Category</option>
+          <option value="Academic">Academic</option>
+          <option value="Social">Social</option>
+          <option value="Arts">Arts</option>
+          <option value="Sports">Sports</option>
+          <option value="Career">Career</option>
+          <option value="Workshop">Workshop</option>
+          <option value="Other">Other</option>
+        </select>
+     </div>
+     <div class="form-group">
+       <select id="event-payment-status">
+         <option disabled selected>FREE OR PAID event</option>
+         <option value="Free">Free</option>
+         <option value="Paid">Paid</option>
+       </select>
+     </div>
+   </div>
+
+      <div class="form-row">
+     <div class="form-group">
+       <label for="event-capacity">Ticket Capacity</label>
+       <input id="event-capacity" type="number" placeholder="50">
+     </div>
+          <div class="form-group" id="price-container" style="display: none; min-width: 140px;">
+       <label for="event-price">Price (e.g., 5.00)</label>
+       <input id="event-price" type="number" step="0.01" placeholder="5.00">
+     </div>
+   </div>
+
+      <div class="button-row">
+     <button id="create-btn" class="create-btn">+ CREATE</button>
+   </div>
+ </div>
+
+  <footer>
+   <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
+ </footer>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const paymentSelect = document.getElementById("event-payment-status");
+    const priceContainer = document.getElementById("price-container");
+    const priceInput = document.getElementById("event-price");
+
+    // Show/Hide Price input based on Payment Status
+    paymentSelect.addEventListener("change", () => {
+      if (paymentSelect.value === "Paid") {
+        priceContainer.style.display = "block"; 
+      } else {
+        priceContainer.style.display = "none"; 
+        priceInput.value = ""; // Clear the value if "Free"
+      }
+    });
+
+    const allDayCheck = document.getElementById("event-all-day");
+    const timeInput = document.getElementById("event-time");
+
+    // Enable/Disable Time input based on "All Day"
+    allDayCheck.addEventListener("change", () => {
+      if (allDayCheck.checked) {
+        timeInput.disabled = true; 
+        timeInput.value = ""; // Clear time value
+      } else {
+        timeInput.disabled = false;
+      }
+    });
+  });
+</script>
+
+  <script src="createevent.js"></script>
+ <script src="signout.js"></script>
+ <script src="index_role.js"></script>
 
 </body>
-
 </html>

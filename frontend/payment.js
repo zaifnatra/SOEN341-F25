@@ -1,114 +1,178 @@
-
 function showMessage(text, color = "#28a745", duration = 3000) {
-  const msg = document.createElement("div");
-  msg.textContent = text;
-  msg.style.position = "fixed";
-  msg.style.top = "20px";
-  msg.style.left = "50%";
-  msg.style.transform = "translateX(-50%)";
-  msg.style.background = color;
-  msg.style.color = "white";
-  msg.style.padding = "10px 25px";
-  msg.style.borderRadius = "8px";
-  msg.style.fontWeight = "bold";
-  msg.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
-  msg.style.zIndex = "1000";
-  msg.style.transition = "opacity 0.3s ease";
-  document.body.appendChild(msg);
+  const msg = document.createElement("div");
+  msg.textContent = text;
+  msg.style.position = "fixed";
+  msg.style.top = "20px";
+  msg.style.left = "50%";
+  msg.style.transform = "translateX(-50%)";
+  msg.style.background = color;
+  msg.style.color = "white";
+  msg.style.padding = "10px 25px";
+  msg.style.borderRadius = "8px";
+  msg.style.fontWeight = "bold";
+  msg.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+  msg.style.zIndex = "1000";
+  msg.style.transition = "opacity 0.3s ease";
+  document.body.appendChild(msg);
 
-  setTimeout(() => {
-    msg.style.opacity = "0";
-    setTimeout(() => msg.remove(), 300);
-  }, duration);
+  setTimeout(() => {
+    msg.style.opacity = "0";
+    setTimeout(() => msg.remove(), 300);
+  }, duration);
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  const params = new URLSearchParams(window.location.search);
-  const title = params.get("title") || "Unknown Event";
-  const date = params.get("date") || "TBA";
-  const price = params.get("price") || "0.00";
+// --- THIS IS THE UPDATED BLOCK ---
+window.addEventListener("DOMContentLoaded", async () => {
+  // 1. Get Event ID from URL
+  const params = new URLSearchParams(window.location.search);
+  const eventId = params.get("eventId");
 
-  document.getElementById("eventName").textContent = title;
-  document.getElementById("eventDate").textContent = date;
-  document.getElementById("eventPrice").textContent = price;
+  if (!eventId) {
+    alert("Error: No event ID specified.");
+    window.location.href = "/eventspage"; // Redirect to events page
+    return;
+  }
+
+  // 2. Get references to the HTML elements
+  const eventNameEl = document.getElementById("eventName");
+  const eventDateEl = document.getElementById("eventDate");
+  const eventPriceEl = document.getElementById("eventPrice");
+
+  // 3. Fetch the event data from our new API route
+  try {
+    const res = await fetch(`/api/event/${eventId}`);
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.message || "Could not fetch event details.");
+    }
+
+    const event = await res.json();
+
+    // 4. Format and populate the fields
+    
+    // Format date string (to handle multi-day and "All Day")
+    let dateString = event.date || "TBA";
+    if (event.endDate && event.endDate !== event.date) {
+      dateString = `${event.date} to ${event.endDate}`;
+    }
+    let timeString = event.time || "";
+    if (timeString.toLowerCase() === "all day") {
+      dateString += " (All Day)";
+    } else if (timeString) {
+      dateString += ` at ${timeString}`;
+    }
+
+    // Format price string
+    let priceString = "0.00";
+    if (event.price) {
+      priceString = `${Number(event.price).toFixed(2)}`;
+    }
+
+    // Set the text content
+    eventNameEl.textContent = event.title || "Unknown Event";
+    eventDateEl.textContent = dateString;
+    eventPriceEl.textContent = priceString;
+
+  } catch (error) {
+    console.error("Failed to load event data:", error);
+    eventNameEl.textContent = "Error Loading Event";
+    eventDateEl.textContent = "---";
+    eventPriceEl.textContent = "---";
+    showMessage(error.message, "#d9534f");
+  }
 });
+// --- END OF UPDATED BLOCK ---
 
+
+// This is your existing code, it is correct
 document.getElementById("paymentForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+  e.preventDefault();
 
-  const name = document.getElementById("name").value.trim();
-  const cardNumber = document.getElementById("cardNumber").value.replace(/\s+/g, "");
-  const expiry = document.getElementById("expiry").value.trim();
-  const cvv = document.getElementById("cvv").value.trim();
-  const params = new URLSearchParams(window.location.search);
-  const eventId = params.get("eventId");
+  const name = document.getElementById("name").value.trim();
+  const cardNumber = document.getElementById("cardNumber").value.replace(/\s+/g, "");
+  const expiry = document.getElementById("expiry").value.trim();
+  const cvv = document.getElementById("cvv").value.trim();
+  const params = new URLSearchParams(window.location.search);
+  const eventId = params.get("eventId");
 
- 
-  if (!/^[A-Za-z]+ [A-Za-z]+$/.test(name)) {
-    showMessage("Please enter your full name (first and last).", "#d9534f");
-    return;
-  }
+ 
+  if (!/^[A-Za-z\s'-]+ [A-Za-z\s'-]+$/.test(name)) { // Allows more complex names
+    showMessage("Please enter your full name (first and last).", "#d9534f");
+    return;
+  }
 
-  if (!/^\d{16}$/.test(cardNumber)) {
-    showMessage("Card number must be 16 digits (no spaces or negatives).", "#d9534f");
-    return;
-  }
+  if (!/^\d{16}$/.test(cardNumber)) {
+    showMessage("Card number must be 16 digits.", "#d9534f");
+    return;
+  }
 
-  if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)) {
-    showMessage("Expiry date must be in MM/YY format.", "#d9534f");
-    return;
-  }
+  if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)) {
+    showMessage("Expiry date must be in MM/YY format.", "#d9534f");
+    return;
+  }
 
-  const [month, year] = expiry.split("/").map(Number);
-  const currentDate = new Date();
-  const currentMonth = currentDate.getMonth() + 1;
-  const currentYear = currentDate.getFullYear() % 100;
+  const [month, year] = expiry.split("/").map(Number);
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth() + 1;
+  const currentYear = currentDate.getFullYear() % 100;
 
-  if (year < currentYear || (year === currentYear && month < currentMonth)) {
-    showMessage("Card has expired. Please use a valid card.", "#d9534f");
-    return;
-  }
+  if (year < currentYear || (year === currentYear && month < currentMonth)) {
+    showMessage("Card has expired. Please use a valid card.", "#d9534f");
+    return;
+  }
 
-  if (!/^\d{3}$/.test(cvv)) {
-    showMessage("CVV must be exactly 3 digits.", "#d9534f");
-    return;
-  }
+  if (!/^\d{3}$/.test(cvv)) {
+    showMessage("CVV must be exactly 3 digits.", "#d9534f");
+    return;
+  }
 
-  if (!eventId) {
-    showMessage("Missing event ID.", "#d9534f");
-    return;
-  }
+  if (!eventId) {
+    showMessage("Missing event ID.", "#d9534f");
+    return;
+  }
 
-  showMessage("Processing payment...", "#0275d8", 1500);
-  const paymentSuccess = true; // simulate payment
+  showMessage("Processing payment...", "#0275d8", 1500);
+  const paymentSuccess = true; // simulate payment
 
-  if (paymentSuccess) {
-    try {
-      const res = await fetch("/signup-event", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ eventId })
-      });
+   if (paymentSuccess) {
+    try {
+      const res = await fetch("/signup-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+       body: JSON.stringify({ eventId })
+      });
 
-      const data = await res.json();
-      if (res.ok && data.success) {
-        showMessage("✅ Payment successful! Event added to My Events.", "#28a745", 1500);
-        setTimeout(() => {
-          window.location.href = "MyEvents.html";
-        }, 1500);
-      } else {
-        showMessage(data.message || "Error adding event.", "#d9534f");
-      }
-    } catch (err) {
-      console.error("Error adding paid event:", err);
-      showMessage("Payment succeeded, but registration failed.", "#f0ad4e");
-    }
-  } else {
-    showMessage("Payment failed. Please try again.", "#d9534f");
-  }
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showMessage("✅ Payment successful! Event added to My Events.", "#28a745", 1500);
+        setTimeout(() => {
+          window.location.href = "MyEvents.html"; // Redirects to My Events page
+        }, 1500);
+      } else {
+        showMessage(data.message || "Error adding event.", "#d9534f");
+     }
+    } catch (err) {
+      console.error("Error adding paid event:", err);
+      showMessage("Payment succeeded, but registration failed.", "#f0ad4e");
+    }
+  } else {
+    showMessage("Payment failed. Please try again.", "#d9534f");
+  }
 });
 
+// This is your existing code, it is correct
 document.getElementById("cardNumber").addEventListener("input", (e) => {
-  let value = e.target.value.replace(/\D/g, "").substring(0, 16);
-  e.target.value = value.replace(/(.{4})/g, "$1 ").trim();
+  let value = e.target.value.replace(/\D/g, "").substring(0, 16);
+  // Format as XXXX XXXX XXXX XXXX
+  e.target.value = value.replace(/(.{4})/g, "$1 ").trim();
+});
+
+// NEW: Add formatter for Expiry Date
+document.getElementById("expiry").addEventListener("input", (e) => {
+  let value = e.target.value.replace(/\D/g, "").substring(0, 4);
+  if (value.length > 2) {
+    e.target.value = `${value.substring(0, 2)}/${value.substring(2)}`;
+  } else {
+    e.target.value = value;
+  }
 });
