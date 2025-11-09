@@ -19,13 +19,23 @@
        <a href="/account">ACCOUNT</a>
        <a href="/eventspage">EVENTS</a>
        <a id="dashboard-link" href="#">DASHBOARD</a>
-      <a href="recommended.html" id="for-you-link" style="display:none;">FOR YOU</a>
+      <a href="/recommended" id="for-you-link" style="display:none;">FOR YOU</a>
        <a href="help.html">HELP</a>
   </div>
 
 
     <div class="welcome-box">
         <form action="/createAccount" method="post">
+            <h3 style="margin-top: 20px;">Select Your Interest</h3>
+            <div class ="interest-container" style="text-align: left; max-width: 300px; margin: 0 auto; padding-left: 20px;">
+                <label><input type="checkbox" name="interests" value="Academic"> Academic</label><br>
+                <label><input type="checkbox" name="interests" value="Social"> Social</label><br>
+                <label><input type="checkbox" name="interests" value="Workshop"> Workshop</label><br>
+                <label><input type="checkbox" name="interests" value="Sports"> Sports</label><br>
+                <label><input type="checkbox" name="interests" value="Career"> Career</label><br>
+                <label><input type="checkbox" name="interests" value="Arts"> Arts</label><br>
+                <label><input type="checkbox" name="interests" value="Other"> Other</label><br>
+            </div>
             <h2 id="logHeader">Create Account</h2>
             <div id="login">
                 <!-- Role select removed for simplicity -->
