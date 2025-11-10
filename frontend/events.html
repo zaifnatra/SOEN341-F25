@@ -175,7 +175,6 @@
                   applyFilters(); // Re-apply filters to update the card
               }
 
-<<<<<<< Updated upstream
             } catch (err) {
               console.error("Error signing up:", err);
               alert("Error signing up for the event.");
@@ -187,7 +186,6 @@
 
         card.appendChild(signUpBtn);
       }
-=======
       // --- STUDENT FAVORITE BUTTON ---
       if (role === "student") {
         const favBtn = document.createElement("button");
@@ -223,7 +221,6 @@
         });
         card.appendChild(favBtn);
       }
->>>>>>> Stashed changes
 
       // --- ADMIN DELETE BUTTON ---
       if (role === "admin") {
@@ -232,7 +229,7 @@
         delBtn.classList.add("delete-btn");
         delBtn.style.marginTop = "10px";
         delBtn.onclick = async () => {
-          if (confirm(`Delete event "${title}"?`)) {
+          if (confirm(`Delete event "${title}"?`)) {s
             try {
               const res = await fetch(`/delete-event/${ev._id}`, {
                 method: "DELETE",
