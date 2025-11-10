@@ -6,6 +6,20 @@
   <title>Concordia University - Events</title>
   <link rel="stylesheet" href="style.css">
 </head>
+<script>
+
+  
+  document.addEventListener("click", function (e) {
+    if (e.target.classList.contains("favorite-btn")) {
+      const btn = e.target;
+      btn.classList.toggle("favorited");
+      btn.textContent = btn.classList.contains("favorited")
+        ? "UNFAVORITE"
+        : "FAVORITE";
+    }
+  });
+</script>
+
 <body>
   <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
 
@@ -161,6 +175,7 @@
                   applyFilters(); // Re-apply filters to update the card
               }
 
+<<<<<<< Updated upstream
             } catch (err) {
               console.error("Error signing up:", err);
               alert("Error signing up for the event.");
@@ -172,6 +187,43 @@
 
         card.appendChild(signUpBtn);
       }
+=======
+      // --- STUDENT FAVORITE BUTTON ---
+      if (role === "student") {
+        const favBtn = document.createElement("button");
+        let isFavorited = favorites.includes(ev._id);
+        favBtn.textContent = isFavorited ? "UNFAVORITE" : "FAVORITE";
+        favBtn.classList.add("favorite-btn");
+        favBtn.style.margin = "5px auto";
+
+        favBtn.addEventListener("click", async () => {
+          try {
+            const res = await fetch("/api/toggle-favorite", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ eventId: ev._id })
+            });
+            const data = await res.json();
+            if (data.success) {
+              isFavorited = data.isFavorited;
+              favBtn.textContent = isFavorited ? "UNFAVORITE" : "FAVORITE";
+              if (isFavorited) {
+                userFavorites.push(ev._id);
+              } else {
+                const index = userFavorites.indexOf(ev._id);
+                if (index > -1) userFavorites.splice(index, 1);
+              }
+            } else {
+              alert(data.message || "Could not update favorite.");
+            }
+          } catch (err) {
+            console.error("Error toggling favorite:", err);
+            alert("Could not update favorite.");
+          }
+        });
+        card.appendChild(favBtn);
+      }
+>>>>>>> Stashed changes
 
       // --- ADMIN DELETE BUTTON ---
       if (role === "admin") {
