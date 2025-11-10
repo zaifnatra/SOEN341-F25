@@ -29,25 +29,38 @@
     <a href="/account">ACCOUNT</a>
     <a href="/eventspage" class="active">EVENTS</a>
     <a id="dashboard-link" href="#">DASHBOARD</a>
-    <a href="recommended.html" id="for-you-link" style="display:none;">FOR YOU</a>
+    <a href="/recommended" id="for-you-link" style="display:none;">FOR YOU</a>
     <a href="help.html">HELP</a>
   </div>
 
+   <div id="auth-btn-container"></div>
 
-  <div class="filter-container">
-    <input 
-      type="text" 
-      id="filter-name" 
-      placeholder="Search through all our campus events"
-    >
-    
-    <select id="filter-category">
-      <option value="">All Categories</option>
-    </select>
-    
-    <input type="date" id="filter-date">
-    <button id="clear-btn" class="filter-button">Clear</button>
-  </div>
+
+<div class="filter-container">
+  <input 
+      type="text" 
+      id="filter-name" 
+      placeholder="Search by event name..."
+  >
+  
+  <input type="date" id="filter-date">
+  
+  <select id="filter-category">
+    <option value="">All Categories</option>
+  </select>
+  
+  <select id="filter-payment">
+    <option value="">All Prices</option>
+    <option value="Free">Free</option>
+    <option value="Paid">Paid</option>
+  </select>
+  
+  <select id="filter-organizer">
+    <option value="">All Organizers</option>
+  </select>
+  
+  <button id="clear-btn" class="filter-button">Clear</button>
+</div>
 
   
   <div class="events-container" id="events-list">

@@ -230,8 +230,8 @@ body {
 }
 
 .options {
-  margin-top: 200px;     
-  margin-left: 130px;     
+  margin-top: 0;     
+  margin-left: 0;     
   display: flex;
   gap: 100px;            
   flex-wrap: wrap;
@@ -306,7 +306,6 @@ body {
       margin: 50px auto;
       display: flex;
       flex-direction: column;
-      gap: 20px;
     }
 
     .form-group input,
@@ -325,7 +324,6 @@ body {
       display: flex;
       gap: 29px;
       flex-wrap: wrap;
-      margin-bottom: 18px;
     }
 
     .form-row .form-group {

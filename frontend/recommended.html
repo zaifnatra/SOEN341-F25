@@ -70,81 +70,129 @@
       <a href="index.html">HOME</a>
       <a href="/account">ACCOUNT</a>
       <a href="/eventspage">EVENTS</a>
-      <a href="recommended.html" class="active">FOR YOU</a>
+      <a href="/recommended" class="active">FOR YOU</a>
       <a href="help.html">HELP</a>
   </div>
 
-  <!-- Main Title -->
-  <div class="page-title">Events Recommended for You</div>
   <div id="auth-btn-container"></div>
 
+  <!-- Main Title -->
+<div class="page-title">For You</div>
 
-  <!-- Section 1 -->
-  <div class="recommend-section">
-    <h2>Based on Past Events You've Attended</h2>
-    <div class="event-container">
-      <div class="event-card">
-        <h3>Music Fest 2025</h3>
-        <p>Downtown Montreal • Nov 12</p>
-      </div>
-      <div class="event-card">
-        <h3>Campus Sports Night</h3>
-        <p>Concordia Gym • Nov 15</p>
-      </div>
-    </div>
-  </div>
+<div class="recommend-section">
+  <h2 id="favorites-title">Your Favorited Events</h2>
+  
+    <div class="event-container" id="favorites-container">
+    <p>Loading your favorites...</p>
+  </div>
+</div>
 
-  <!-- Section 2 -->
-  <div class="recommend-section">
-    <h2>Based on Your Interests</h2>
-    <div class="event-container">
-      <div class="event-card">
-        <h3>Art & Culture Fair</h3>
-        <p>EV Building • Nov 20</p>
-      </div>
-      <div class="event-card">
-        <h3>Tech Innovation Expo</h3>
-        <p>SGW Campus • Nov 23</p>
-      </div>
-    </div>
-  </div>
+<hr style="width: 80%; margin: 20px auto; border-color: #cfd9e8;">
 
-  <!-- Section 3 -->
-  <div class="recommend-section">
-    <h2>Your Favorite Events</h2>
-    <div class="event-container">
-      <div class="event-card">
-        <h3>Charity Gala Night</h3>
-        <p>Hall Building • Dec 2</p>
-      </div>
-      <div class="event-card">
-        <h3>Film Screening: “Voices of Youth”</h3>
-        <p>VA Auditorium • Dec 5</p>
-      </div>
-    </div>
-  </div>
+<div class="recommend-section">
+  <h2 id="recommend-title">Recommended Events</h2>
+  
+  <div id="recommend-prompt-container"></div> 
+  
+  <div class="event-container" id="recommend-container">
+    <p>Loading recommendations...</p>
+  </div>
+</div>
 
-  <script>
-async function checkAccess() {
-  try {
-    const res = await fetch("/user-profile");
-    if (!res.ok) throw new Error();
-    const data = await res.json();
+<script>
+    // 1. This function is reusable for both sections
+    function renderEvents(events, containerId, emptyMessage) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = ""; 
 
-    // Redirect if not a student
-    if (!data.role || data.role !== "student") {
-      alert("Access denied. Only students can view this page.");
-      window.location.href = "signin.html"; // redirect to sign-in
-    }
-  } catch (err) {
-    console.error("Access check failed:", err);
-    window.location.href = "signin.html";
-  }
-}
+      if (!events || events.length === 0) {
+        container.innerHTML = `<p>${emptyMessage}</p>`;
+        return;
+      }
 
-checkAccess();
-</script>
+      events.forEach(ev => {
+        const card = document.createElement('div');
+        card.classList.add('event-card');
+        
+        // --- 1. NEW LOGIC FOR DATE ---
+        let dateString = ev.date || "No date";
+        if (ev.endDate && ev.endDate !== ev.date) {
+          dateString = `${ev.date} to ${ev.endDate}`;
+        }
+        
+        // --- 2. NEW LOGIC FOR PRICE ---
+        let priceString = "Free";
+        if (ev.paymentStatus === "Paid" && ev.price) {
+          priceString = `$${Number(ev.price).toFixed(2)}`;
+        } else if (ev.paymentStatus === "Paid") {
+          priceString = "Paid (Price TBD)";
+        }
+        
+        // --- 3. NEW LOGIC FOR TIME ---
+        let timeString = ev.time || "N/A";
+        if (timeString.toLowerCase() === "all day") {
+          timeString = "All Day";
+        }
 
+        // --- 4. UPDATED HTML ---
+        card.innerHTML = `
+          <h3>${ev.title || 'Untitled Event'}</h3>
+         <p>${ev.location || 'No location'} • ${dateString}</p>
+          <p><strong>Time:</strong> ${timeString}</p>
+          <p><strong>Category:</strong> ${ev.type || 'N/A'}</p>
+          <p><strong>Price:</strong> ${priceString}</p>
+        `;
+        container.appendChild(card);
+      });
+    }
 
-</body>
-</html>
+    // 2. This function loads all data for the page
+    async function loadPageData() {
+      const titleEl = document.getElementById('recommend-title');
+      const promptEl = document.getElementById('recommend-prompt-container');
+      
+      const favContainer = document.getElementById('favorites-container');
+      const recContainer = document.getElementById('recommend-container');
+
+      try {
+        const [user, recommendations, favorites] = await Promise.all([
+          fetch("/user-profile").then(res => res.json()),
+          fetch('/api/recommendations').then(res => res.json()),
+          fetch('/api/my-favorites').then(res => res.json())
+        ]);
+
+        if (!user.role || user.role !== "student") {
+          alert("Access denied. Only students can view this page.");
+          window.location.href = "signin.html";
+          return;
+        }
+        
+        // Render both sections
+        renderEvents(favorites, 'favorites-container', 'You have no favorited events yet.');
+        renderEvents(recommendations, 'recommend-container', 'No new recommendations found for you right now.'); 
+
+        // Update title and prompt
+        const hasInterests = user.interests && user.interests.length > 0 && !user.interests.includes('Other');
+        
+        if (hasInterests) {
+          titleEl.textContent = "Based on Your Interests";
+        } else {
+         titleEl.textContent = "Popular Upcoming Events";
+          promptEl.innerHTML = `
+            <p style="text-align: center; font-size: 16px; margin-bottom: 20px;">
+              Want better recommendations? 
+              <a href="/account" style="color: #083d8c; font-weight: bold;">Set your interests now!</a>
+            </p>
+          `;
+        }
+
+      } catch (err) {
+        console.error("Access check or data load failed:", err);
+       favContainer.innerHTML = '<p>Error loading favorites. Please refresh.</p>';
+        recContainer.innerHTML = '<p>Error loading recommendations. Please refresh.</p>';
+      }
+    }
+
+    // 3. Run the main function
+    loadPageData();
+  </script>
