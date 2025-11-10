@@ -180,7 +180,7 @@
       if (role === "student") {
         const favBtn = document.createElement("button");
         let isFavorited = favorites.includes(ev._id);
-        favBtn.textContent = isFavorited ? "❤️ Unfavorite" : "🤍 Favorite";
+        favBtn.textContent = isFavorited ? "UNFAVORITE" : "FAVORITE";
         favBtn.classList.add("favorite-btn");
         favBtn.style.margin = "5px auto";
 
@@ -194,7 +194,7 @@
             const data = await res.json();
             if (data.success) {
               isFavorited = data.isFavorited;
-              favBtn.textContent = isFavorited ? "❤️ Unfavorite" : "🤍 Favorite";
+              favBtn.textContent = isFavorited ? "UNFAVORITE" : "FAVORITE";
               if (isFavorited) {
                 userFavorites.push(ev._id);
               } else {
