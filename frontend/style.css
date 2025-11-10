@@ -485,7 +485,7 @@ body {
     }
 
     .event-card {
-      background: #f1f1f1;
+      background: #ffffff;
       border-radius: 15px;
       padding: 20px;
       width: 250px;
@@ -1076,7 +1076,7 @@ input {
     }
 
     .event-card {
-      background-color: #f8f8f8;
+      background-color: hsl(0, 0%, 100%);
       border-radius: 20px;
       box-shadow: 0 3px 6px rgba(0,0,0,0.08);
       padding: 20px;
@@ -1180,4 +1180,63 @@ input {
   font-weight: bold;
   font-size: 1.1em;
   margin-top: 10px;
+}
+
+.events-container { padding-bottom: 120px; }
+
+/* SIGN UP AND FAV BUTTON STYLING */
+
+.event-card {
+  display: flex;
+  flex-direction: column;      
+  align-items: center;        
+  justify-content: flex-end;  
+  position: relative;
+}
+
+
+.event-card .signup-btn,
+.event-card .favorite-btn {
+  width: 140px;                
+  text-align: center;
+  margin: 6px 0;               
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 10px 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* --- Sign Up Button --- */
+.signup-btn {
+  order: 1;                   
+  background-color: #083d8c;
+  color: #ffffff;
+  border: none;
+}
+
+.signup-btn:hover {
+  background-color: #0056b3;
+}
+
+/* --- Favorite Button --- */
+.favorite-btn {
+  order: 2;                    
+  background-color: #ffffff;
+  border: 2px solid #083d8c;
+  color: #083d8c;
+}
+
+.favorite-btn:hover {
+  background-color: #083d8c;
+  color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .event-card .signup-btn,
+  .event-card .favorite-btn {
+    width: 100%;               
+    max-width: 200px;
+  }
 }
