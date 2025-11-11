@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Concordia University - Create Account</title>
+  <!-- External CSS (path assumed correct) -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="title-bar" role="banner">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+      <a href="index.html">HOME</a>
+      <a href="/account">ACCOUNT</a>
+      <a href="/eventspage">EVENTS</a>
+      <a id="dashboard-link" href="#">DASHBOARD</a>
+      <a href="/recommended" id="for-you-link" style="display:none;">FOR YOU</a>
+      <a href="help.html">HELP</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="welcome-box" aria-labelledby="create-heading">
+      <form action="/createAccount" method="post" id="create-account-form" novalidate>
+        <!-- STEP 1 -->
+        <div id="step-1-account">
+          <h2 id="create-heading">Create Account</h2>
+          <div id="login">
+            <label for="email-input">Email</label>
+            <input
+              type="email"
+              placeholder="you@university.ca"
+              name="email"
+              id="email-input"
+              required
+              autocomplete="email"
+            />
+
+            <label for="username-input">Username</label>
+            <input
+              type="text"
+              placeholder="Username"
+              name="username"
+              id="username-input"
+              minlength="3"
+              required
+              autocomplete="username"
+            />
+
+            <label for="password-input">Password</label>
+            <input
+              type="password"
+              placeholder="Password (min 8 chars)"
+              name="password"
+              id="password-input"
+              minlength="8"
+              required
+              autocomplete="new-password"
+            />
+          </div>
+
+          <div class="form-controls">
+            <button type="button" id="next-btn" class="btn">Next</button>
+          </div>
+
+          <div id="reg-link">
+            <p>Already have an account? <a href="signin.html">Login</a></p>
+          </div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div id="step-2-interests" style="display:none;">
+          <h2>Select Your Interests</h2>
+          <p style="margin-bottom: 20px;">This helps us recommend events for you.</p>
+
+          <fieldset class="interests-container" style="max-width: 320px; margin: 0 auto 20px auto; padding-left: 12px;">
+            <legend class="visually-hidden">Interests</legend>
+
+            <!-- Use name="interests[]" so server receives an array -->
+            <label><input type="checkbox" name="interests[]" value="Academic" /> Academic</label><br />
+            <label><input type="checkbox" name="interests[]" value="Social" /> Social</label><br />
+            <label><input type="checkbox" name="interests[]" value="Workshop" /> Workshop</label><br />
+            <label><input type="checkbox" name="interests[]" value="Sports" /> Sports</label><br />
+            <label><input type="checkbox" name="interests[]" value="Career" /> Career</label><br />
+            <label><input type="checkbox" name="interests[]" value="Arts" /> Arts</label><br />
+            <label><input type="checkbox" name="interests[]" value="Other" /> Other</label><br />
+          </fieldset>
+
+          <div class="form-controls">
+            <button type="button" id="back-btn" class="btn">Back</button>
+            <button type="submit" id="finish-btn" class="btn">Finish Account Creation</button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <div class="signout">SIGN IN</div>
+  </main>
+
+  <footer>
+    <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
+  </footer>
+
+  <!-- Inline JS kept simple and accessible -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const nextBtn = document.getElementById("next-btn");
+      const backBtn = document.getElementById("back-btn");
+      const step1 = document.getElementById("step-1-account");
+      const step2 = document.getElementById("step-2-interests");
+
+      const emailInput = document.getElementById("email-input");
+      const usernameInput = document.getElementById("username-input");
+      const passwordInput = document.getElementById("password-input");
+      const form = document.getElementById("create-account-form");
+
+      // Simple client-side validation before moving to step 2
+      nextBtn.addEventListener("click", () => {
+        // clear previous custom messages
+        emailInput.setCustomValidity("");
+        usernameInput.setCustomValidity("");
+        passwordInput.setCustomValidity("");
+
+        const email = emailInput.value.trim();
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        // Basic checks
+        if (!email || !username || !password) {
+          alert("Please fill in all account fields before continuing.");
+          return;
+        }
+        if (username.length < 3) {
+          alert("Username must be at least 3 characters.");
+          return;
+        }
+        if (password.length < 8) {
+          alert("Password must be at least 8 characters.");
+          return;
+        }
+
+        // Optional: basic email pattern check (the browser also enforces type="email")
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(email)) {
+          alert("Please enter a valid email address.");
+          return;
+        }
+
+        // show step 2
+        step1.style.display = "none";
+        step2.style.display = "block";
+        // move focus for accessibility
+        step2.querySelector("fieldset").focus?.();
+      });
+
+      backBtn?.addEventListener("click", () => {
+        step2.style.display = "none";
+        step1.style.display = "block";
+        emailInput.focus();
+      });
+
+      // Final client-side (optional) guard on submit
+      form.addEventListener("submit", (e) => {
+        // Example: ensure password length again
+        if (passwordInput.value.trim().length < 8) {
+          e.preventDefault();
+          alert("Password must be at least 8 characters.");
+        }
+        // otherwise allow form submission; server must still validate and hash password
+      });
+    });
+  </script>
+
+  <!-- External script kept -->
+  <script src="index_role.js"></script>
+</body>
+</html>

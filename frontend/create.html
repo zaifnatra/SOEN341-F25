@@ -1,69 +1,93 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Concordia University- Create</title>
-    <!-- Link to external CSS file, dont need /frontend path cause of the staticroot in js-->
+    <title>Concordia University - Create</title>
+    <!-- Link to external CSS file -->
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
 
-
-     <div class="navbar">
-      <a href="index.html">HOME</a>
-       <a href="/account">ACCOUNT</a>
-       <a href="/eventspage">EVENTS</a>
-       <a id="dashboard-link" href="#">DASHBOARD</a>
-      <a href="/recommended" id="for-you-link" style="display:none;">FOR YOU</a>
-       <a href="help.html">HELP</a>
-  </div>
-
+    <div class="navbar">
+        <a href="index.html">HOME</a>
+        <a href="/account">ACCOUNT</a>
+        <a href="/eventspage">EVENTS</a>
+        <a id="dashboard-link" href="#">DASHBOARD</a>
+        <a href="/recommended" id="for-you-link" style="display:none;">FOR YOU</a>
+        <a href="help.html">HELP</a>
+    </div>
 
     <div class="welcome-box">
-        <form action="/createAccount" method="post">
-            <h3 style="margin-top: 20px;">Select Your Interest</h3>
-            <div class ="interest-container" style="text-align: left; max-width: 300px; margin: 0 auto; padding-left: 20px;">
-                <label><input type="checkbox" name="interests" value="Academic"> Academic</label><br>
-                <label><input type="checkbox" name="interests" value="Social"> Social</label><br>
-                <label><input type="checkbox" name="interests" value="Workshop"> Workshop</label><br>
-                <label><input type="checkbox" name="interests" value="Sports"> Sports</label><br>
-                <label><input type="checkbox" name="interests" value="Career"> Career</label><br>
-                <label><input type="checkbox" name="interests" value="Arts"> Arts</label><br>
-                <label><input type="checkbox" name="interests" value="Other"> Other</label><br>
-            </div>
-            <h2 id="logHeader">Create Account</h2>
-            <div id="login">
-                <!-- Role select removed for simplicity -->
-                <input type="email" placeholder="Email" name="email" required>
-                <input type="text" placeholder="Username" name="username">
-                <input type="password" placeholder="Password" name="password">
+        <form action="/createAccount" method="post" id="create-account-form">
+            <div id="step-1-account">
+                <h2 id="logHeader">Create Account</h2>
+                <div id="login">
+                    <!-- Role select removed for simplicity -->
+                    <input type="email" placeholder="Email" name="email" id="email-input" required>
+                    <input type="text" placeholder="Username" name="username" id="username-input" required>
+                    <input type="password" placeholder="Password" name="password" id="password-input" required>
+                </div>
+                <button type="button" id="next-btn" class="btn">Next</button>
+                <div id="reg-link">
+                    <p>Already have an account? <a href="signin.html">Login</a></p>
+                </div>
             </div>
 
-            <button type="submit" id="btn">Create Account</button>
+            <div id="step-2-interests" style="display:none;">
+                <h2 id="logHeader">Select Your Interests</h2>
+                <p style="margin-bottom: 20px;">This helps us recommend events for you.</p>
 
-            <div id="reg-link">
-                <p>Already have an account?
-                    <a href="signin.html">Login</a>
-                </p>
+                <div class="interests-container" style="text-align: left; max-width: 300px; margin: 0 auto 20px auto; padding-left: 20px;">
+                    <label><input type="checkbox" name="interests" value="Academic"> Academic</label><br>
+                    <label><input type="checkbox" name="interests" value="Social"> Social</label><br>
+                    <label><input type="checkbox" name="interests" value="Workshop"> Workshop</label><br>
+                    <label><input type="checkbox" name="interests" value="Sports"> Sports</label><br>
+                    <label><input type="checkbox" name="interests" value="Career"> Career</label><br>
+                    <label><input type="checkbox" name="interests" value="Arts"> Arts</label><br>
+                    <label><input type="checkbox" name="interests" value="Other"> Other</label><br>
+                </div>
+
+                <button type="submit" id="finish-btn" class="btn">Finish Account Creation</button>
             </div>
         </form>
     </div>
 
-    <!-- Sign in button uses the same class as signout cuz of positioning -->
-    <div class="signout">
-        SIGN IN
-    </div>
+    <!-- Sign in button uses the same class as signout for positioning -->
+    <div class="signout">SIGN IN</div>
 
-     <footer>
-   <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
- </footer>
- <script src="index_role.js"></script>
+    <footer>
+        <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
+    </footer>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const nextBtn = document.getElementById("next-btn");
+            const step1 = document.getElementById("step-1-account");
+            const step2 = document.getElementById("step-2-interests");
+            const emailInput = document.getElementById("email-input");
+            const usernameInput = document.getElementById("username-input");
+            const passwordInput = document.getElementById("password-input");
+
+            nextBtn.addEventListener("click", () => {
+                const email = emailInput.value.trim();
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value.trim();
+
+                if (!email || !username || !password) {
+                    alert("Please fill in all account fields before continuing.");
+                    return;
+                }
+
+                step1.style.display = "none";
+                step2.style.display = "block";
+            });
+        });
+    </script>
+
+    <script src="index_role.js"></script>
 </body>
-
 </html>
