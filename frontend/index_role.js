@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const dashboardLink = document.getElementById("dashboard-link");
   const forYouLink = document.getElementById("for-you-link"); 
+  const accountLink = document.getElementById("account-link")
   
   // If neither link exists (no navbar), exit quietly
   if (!dashboardLink && !forYouLink) return;
@@ -50,6 +51,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         forYouLink.style.display = "inline-block";
       } else {
         forYouLink.style.display = "none";
+      }
+    }
+
+    // ACCOUNT VISIBILITY
+    if (accountLink) {
+      if (userRole === "admin") {
+        accountLink.style.display = "none";
+      } else {
+        accountLink.style.display = "inline-block";
       }
     }
 
