@@ -72,7 +72,41 @@
             const usernameInput = document.getElementById("username-input");
             const passwordInput = document.getElementById("password-input");
 
-            nextBtn.addEventListener("click", () => {
+            // create an inline error message element (will be shown if email taken)
+                let errEl = document.getElementById('create-email-error');
+                if (!errEl) {
+                errEl = document.createElement('div');
+                errEl.id = 'create-email-error';
+                errEl.style.cssText = `
+                    display: none;
+                    background-color: rgba(229, 9, 20, 0.1);
+                    color: #e50914;
+                    border-left: 4px solid #e50914;
+                    padding: 10px 14px;
+                    border-radius: 6px;
+                    margin-top: 10px;
+                    font-size: 0.95rem;
+                    font-weight: 500;
+                    font-family: 'Inter', 'Roboto', sans-serif;
+                    letter-spacing: 0.3px;
+                    transition: all 0.3s ease;
+                    animation: fadeIn 0.4s ease forwards;
+                `;
+
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-3px); }
+                    to { opacity: 1; transform: translateY(0); }
+                    }
+                `;
+                document.head.appendChild(style);
+
+                step1.insertBefore(errEl, step1.firstChild);
+                }
+
+
+            nextBtn.addEventListener("click", async () => {
                 const email = emailInput.value.trim();
                 const username = usernameInput.value.trim();
                 const password = passwordInput.value.trim();
@@ -82,11 +116,116 @@
                     return;
                 }
 
-                step1.style.display = "none";
-                step2.style.display = "block";
+                // Check email availability before moving to step 2
+                try {
+                  const res = await fetch('/check-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ email })
+                  });
+
+                  const data = await res.json();
+                  if (res.ok && data.available) {
+                    // clear any previous error and proceed
+                    errEl.style.display = 'none';
+                    step1.style.display = "none";
+                    step2.style.display = "block";
+                  } else {
+                    // show error returned by server
+                    const msg = (data && data.message) ? data.message : 'Email is already in use.';
+                    errEl.textContent = msg;
+                    errEl.style.display = 'block';
+                  }
+                } catch (err) {
+                  console.error('Email check failed', err);
+                  errEl.textContent = 'Unable to check email availability. Try again.';
+                  errEl.style.display = 'block';
+                }
             });
         });
     </script>
+
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('create-account-form');
+  if (!form) return;
+
+  // Ensure an inline error element exists
+  let errEl = document.getElementById('create-account-error');
+  if (!errEl) {
+    errEl = document.createElement('div');
+                errEl.id = 'create-email-error';
+                errEl.style.cssText = `
+                    display: none;
+                    background-color: rgba(229, 9, 20, 0.1);
+                    color: #e50914;
+                    border-left: 4px solid #e50914;
+                    padding: 10px 14px;
+                    border-radius: 6px;
+                    margin-top: 10px;
+                    font-size: 0.95rem;
+                    font-weight: 500;
+                    font-family: 'Inter', 'Roboto', sans-serif;
+                    letter-spacing: 0.3px;
+                    transition: all 0.3s ease;
+                    animation: fadeIn 0.4s ease forwards;
+                `;
+
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-3px); }
+                    to { opacity: 1; transform: translateY(0); }
+                    }
+                `;
+                document.head.appendChild(style);
+    form.prepend(errEl);
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // gather form data including interests (checkboxes)
+    const formData = new FormData(form);
+    const payload = {};
+    formData.forEach((v,k) => {
+      // collect multiple interests into array
+      if (k === 'interests') {
+        if (!payload.interests) payload.interests = [];
+        payload.interests.push(v);
+      } else {
+        payload[k] = v;
+      }
+    });
+
+    try {
+      const res = await fetch('/createAccount', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (res.ok && data && data.success !== false) {
+        // creation succeeded -> redirect to signin
+        window.location.href = '/signin.html';
+      } else {
+        // show server message inline
+        const msg = (data && data.message) ? data.message : 'Unable to create account.';
+        errEl.textContent = msg;
+        errEl.style.display = 'block';
+      }
+    } catch (err) {
+      console.error('Create account error:', err);
+      errEl.textContent = 'Network/server error. Please try again.';
+      errEl.style.display = 'block';
+    }
+  });
+});
+</script>
 
     <script src="index_role.js"></script>
 </body>

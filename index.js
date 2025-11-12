@@ -79,7 +79,11 @@ app.post('/createAccount', async (req, res) => {
   try {
     const existing = await usersCollection.findOne({ email });
     if (existing) {
-      return res.send("Email already exists.");
+      // return JSON error so frontend can show inline message
+      return res.status(400).json({
+        success: false,
+        message: "Email is already in use. Please login or use a different email."
+      });
     }
 
     // normalize interests to an array (handles string, single value, comma list, or array)
@@ -790,13 +794,32 @@ app.get("/export-event-csv/:eventId", requireLogin, async (req, res) => {
   }
 });
 
-
 //express route for organizer dashboard
 app.get('/organizerdashboard', requireLogin, (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'organizerdashboard.html'));
 });
 
 
+// new: check email availability before moving to interests (used by step-1 "Next")
+app.post('/check-email', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ available: false, message: 'Email is required.' });
+
+  try {
+    const existing = await usersCollection.findOne({ email });
+    if (existing) {
+      // return JSON error so frontend can show inline message
+      return res.status(400).json({
+        success: false,
+        message: "Email is already in use. Please login or use a different email."
+      });
+    }
+    return res.json({ available: true });
+  } catch (err) {
+    console.error('Error checking email availability:', err);
+    return res.status(500).json({ available: false, message: 'Server error checking email.' });
+  }
+});
 
 /* ---------------- ADMIN USER MANAGEMENT ---------------- */
 
@@ -1077,8 +1100,6 @@ app.get('/generate-ticket/:eventId', async (req, res) => {
     res.status(500).send('Server error generating ticket.');
   } // FIX: Was "After }"
 });
-
-
 
 /* ---------------- SERVER ---------------- */
 const PORT = process.env.PORT || 3000;
