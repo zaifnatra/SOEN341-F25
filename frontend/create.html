@@ -64,168 +64,75 @@
     </footer>
 
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const nextBtn = document.getElementById("next-btn");
-            const step1 = document.getElementById("step-1-account");
-            const step2 = document.getElementById("step-2-interests");
-            const emailInput = document.getElementById("email-input");
-            const usernameInput = document.getElementById("username-input");
-            const passwordInput = document.getElementById("password-input");
+document.addEventListener("DOMContentLoaded", () => {
+  const nextBtn = document.getElementById("next-btn");
+  const step1 = document.getElementById("step-1-account");
+  const step2 = document.getElementById("step-2-interests");
+  const emailInput = document.getElementById("email-input");
+  const usernameInput = document.getElementById("username-input");
+  const passwordInput = document.getElementById("password-input");
+  const form = document.getElementById("create-account-form");
 
-            // create an inline error message element (will be shown if email taken)
-                let errEl = document.getElementById('create-email-error');
-                if (!errEl) {
-                errEl = document.createElement('div');
-                errEl.id = 'create-email-error';
-                errEl.style.cssText = `
-                    display: none;
-                    background-color: rgba(229, 9, 20, 0.1);
-                    color: #e50914;
-                    border-left: 4px solid #e50914;
-                    padding: 10px 14px;
-                    border-radius: 6px;
-                    margin-top: 10px;
-                    font-size: 0.95rem;
-                    font-weight: 500;
-                    font-family: 'Inter', 'Roboto', sans-serif;
-                    letter-spacing: 0.3px;
-                    transition: all 0.3s ease;
-                    animation: fadeIn 0.4s ease forwards;
-                `;
-
-                const style = document.createElement('style');
-                style.textContent = `
-                    @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(-3px); }
-                    to { opacity: 1; transform: translateY(0); }
-                    }
-                `;
-                document.head.appendChild(style);
-
-                step1.insertBefore(errEl, step1.firstChild);
-                }
-
-
-            nextBtn.addEventListener("click", async () => {
-                const email = emailInput.value.trim();
-                const username = usernameInput.value.trim();
-                const password = passwordInput.value.trim();
-
-                if (!email || !username || !password) {
-                    alert("Please fill in all account fields before continuing.");
-                    return;
-                }
-
-                // Check email availability before moving to step 2
-                try {
-                  const res = await fetch('/check-email', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'same-origin',
-                    body: JSON.stringify({ email })
-                  });
-
-                  const data = await res.json();
-                  if (res.ok && data.available) {
-                    // clear any previous error and proceed
-                    errEl.style.display = 'none';
-                    step1.style.display = "none";
-                    step2.style.display = "block";
-                  } else {
-                    // show error returned by server
-                    const msg = (data && data.message) ? data.message : 'Email is already in use.';
-                    errEl.textContent = msg;
-                    errEl.style.display = 'block';
-                  }
-                } catch (err) {
-                  console.error('Email check failed', err);
-                  errEl.textContent = 'Unable to check email availability. Try again.';
-                  errEl.style.display = 'block';
-                }
-            });
-        });
-    </script>
-
-    <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('create-account-form');
-  if (!form) return;
-
-  // Ensure an inline error element exists
-  let errEl = document.getElementById('create-account-error');
-  if (!errEl) {
-    errEl = document.createElement('div');
-                errEl.id = 'create-email-error';
-                errEl.style.cssText = `
-                    display: none;
-                    background-color: rgba(229, 9, 20, 0.1);
-                    color: #e50914;
-                    border-left: 4px solid #e50914;
-                    padding: 10px 14px;
-                    border-radius: 6px;
-                    margin-top: 10px;
-                    font-size: 0.95rem;
-                    font-weight: 500;
-                    font-family: 'Inter', 'Roboto', sans-serif;
-                    letter-spacing: 0.3px;
-                    transition: all 0.3s ease;
-                    animation: fadeIn 0.4s ease forwards;
-                `;
-
-                const style = document.createElement('style');
-                style.textContent = `
-                    @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(-3px); }
-                    to { opacity: 1; transform: translateY(0); }
-                    }
-                `;
-                document.head.appendChild(style);
-    form.prepend(errEl);
+  let errorEl = document.getElementById("create-email-error");
+  if (!errorEl) {
+    errorEl = document.createElement("div");
+    errorEl.id = "create-email-error";
+    errorEl.style.color = "#e50914";
+    errorEl.style.marginTop = "8px";
+    document.getElementById("login").appendChild(errorEl);
   }
 
-  form.addEventListener('submit', async (e) => {
+  // Step 1 → Step 2
+  nextBtn.addEventListener("click", () => {
+    const email = emailInput.value.trim();
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if (!email || !username || !password) {
+      errorEl.textContent = "Please fill in all fields before continuing.";
+      return;
+    }
+
+    errorEl.textContent = "";
+    step1.style.display = "none";
+    step2.style.display = "block";
+  });
+
+  // Handle final submission
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // gather form data including interests (checkboxes)
-    const formData = new FormData(form);
-    const payload = {};
-    formData.forEach((v,k) => {
-      // collect multiple interests into array
-      if (k === 'interests') {
-        if (!payload.interests) payload.interests = [];
-        payload.interests.push(v);
-      } else {
-        payload[k] = v;
-      }
+    const email = emailInput.value.trim();
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
+    const interests = Array.from(
+      document.querySelectorAll("input[name='interests']:checked")
+    ).map(cb => cb.value);
+
+    const res = await fetch("/createAccount", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, username, password, interests })
     });
 
-    try {
-      const res = await fetch('/createAccount', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify(payload)
-      });
+    const data = await res.json();
 
-      const data = await res.json().catch(() => null);
-
-      if (res.ok && data && data.success !== false) {
-        // creation succeeded -> redirect to signin
-        window.location.href = '/signin.html';
-      } else {
-        // show server message inline
-        const msg = (data && data.message) ? data.message : 'Unable to create account.';
-        errEl.textContent = msg;
-        errEl.style.display = 'block';
-      }
-    } catch (err) {
-      console.error('Create account error:', err);
-      errEl.textContent = 'Network/server error. Please try again.';
-      errEl.style.display = 'block';
+    if (!data.success) {
+      // Show inline error (email already exists, etc.)
+      step1.style.display = "block";
+      step2.style.display = "none";
+      errorEl.textContent = data.message;
+      return;
     }
+
+    // Success → redirect to sign-in page
+    errorEl.textContent = "";
+    alert("Account created successfully!");
+    window.location.href = "/signin.html";
   });
 });
 </script>
+
 
     <script src="index_role.js"></script>
 </body>

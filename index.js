@@ -76,17 +76,20 @@ app.get('/signin', (req, res) => {
 app.post('/createAccount', async (req, res) => {
   // --- FIX: Added 'interests' to be read from req.body ---
   const { email, username, password, interests: rawInterests } = req.body;
+
   try {
     const existing = await usersCollection.findOne({ email });
     if (existing) {
-      // return JSON error so frontend can show inline message
-      return res.status(400).json({
-        success: false,
-        message: "Email is already in use. Please login or use a different email."
-      });
+      // Return JSON instead of rendering another page
+      return res.json({ success: false, message: "Email already exists. Please use another email." });
     }
 
-    // normalize interests to an array (handles string, single value, comma list, or array)
+    const existingUsername = await usersCollection.findOne({ username });
+    if (existingUsername) {
+      return res.json({ success: false, message: "Username already taken. Please choose another one." });
+    }
+
+    // Normalize interests
     let interests = [];
     if (rawInterests == null) {
       interests = [];
@@ -100,16 +103,15 @@ app.post('/createAccount', async (req, res) => {
         .filter(Boolean);
     }
 
-    // --- FIX: Changed 'interest' to 'interests' ---
-    const newUser = { email, username, password, role: "student", interests: interests || [] };
-    await usersCollection.insertOne(newUser);
-    console.log("New User created:", newUser);
+    const newUser = { email, username, password, role: "student", interests: interests || [] };
+    await usersCollection.insertOne(newUser);
+    console.log("New User created:", newUser);
 
-    res.redirect('/signin.html');
-  } catch (error) {
-    console.error("Error creating user:", error);
-    res.status(500).send("Error creating account.");
-  }
+    res.json({ success: true, message: "Account created successfully." });
+  } catch (error) {
+    console.error("Error creating user:", error);
+    res.status(500).json({ success: false, message: "Error creating account." });
+  }
 });
 
 //handles logging in
@@ -794,32 +796,13 @@ app.get("/export-event-csv/:eventId", requireLogin, async (req, res) => {
   }
 });
 
+
 //express route for organizer dashboard
 app.get('/organizerdashboard', requireLogin, (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'organizerdashboard.html'));
 });
 
 
-// new: check email availability before moving to interests (used by step-1 "Next")
-app.post('/check-email', async (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ available: false, message: 'Email is required.' });
-
-  try {
-    const existing = await usersCollection.findOne({ email });
-    if (existing) {
-      // return JSON error so frontend can show inline message
-      return res.status(400).json({
-        success: false,
-        message: "Email is already in use. Please login or use a different email."
-      });
-    }
-    return res.json({ available: true });
-  } catch (err) {
-    console.error('Error checking email availability:', err);
-    return res.status(500).json({ available: false, message: 'Server error checking email.' });
-  }
-});
 
 /* ---------------- ADMIN USER MANAGEMENT ---------------- */
 
@@ -1100,6 +1083,8 @@ app.get('/generate-ticket/:eventId', async (req, res) => {
     res.status(500).send('Server error generating ticket.');
   } // FIX: Was "After }"
 });
+
+
 
 /* ---------------- SERVER ---------------- */
 const PORT = process.env.PORT || 3000;
