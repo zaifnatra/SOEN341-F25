@@ -76,13 +76,20 @@ app.get('/signin', (req, res) => {
 app.post('/createAccount', async (req, res) => {
   // --- FIX: Added 'interests' to be read from req.body ---
   const { email, username, password, interests: rawInterests } = req.body;
+
   try {
     const existing = await usersCollection.findOne({ email });
     if (existing) {
-      return res.send("Email already exists.");
+      // Return JSON instead of rendering another page
+      return res.json({ success: false, message: "Email already exists. Please use another email." });
     }
 
-    // normalize interests to an array (handles string, single value, comma list, or array)
+    const existingUsername = await usersCollection.findOne({ username });
+    if (existingUsername) {
+      return res.json({ success: false, message: "Username already taken. Please choose another one." });
+    }
+
+    // Normalize interests
     let interests = [];
     if (rawInterests == null) {
       interests = [];
@@ -96,16 +103,15 @@ app.post('/createAccount', async (req, res) => {
         .filter(Boolean);
     }
 
-    // --- FIX: Changed 'interest' to 'interests' ---
-    const newUser = { email, username, password, role: "student", interests: interests || [] };
-    await usersCollection.insertOne(newUser);
-    console.log("New User created:", newUser);
+    const newUser = { email, username, password, role: "student", interests: interests || [] };
+    await usersCollection.insertOne(newUser);
+    console.log("New User created:", newUser);
 
-    res.redirect('/signin.html');
-  } catch (error) {
-    console.error("Error creating user:", error);
-    res.status(500).send("Error creating account.");
-  }
+    res.json({ success: true, message: "Account created successfully." });
+  } catch (error) {
+    console.error("Error creating user:", error);
+    res.status(500).json({ success: false, message: "Error creating account." });
+  }
 });
 
 //handles logging in

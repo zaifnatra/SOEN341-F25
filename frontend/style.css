@@ -888,8 +888,15 @@ input {
     padding: 20px;
   }
 }
+.button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; /* makes all buttons same width */
+  gap: 8px;
+}
+
 .fancy-btn {
-  font-size: 10px;
+  font-size: 9px;
   letter-spacing: 1px;
   text-transform: uppercase;
   display: inline-block;
@@ -907,7 +914,6 @@ input {
   background: transparent;
   cursor: pointer;
   margin-right: 8px;
-  margin-top: 5px;
 }
 
 .fancy-btn:before {
