@@ -352,8 +352,8 @@
   }
 
   // --- Main startup ---
-  window.onload = () => {
-    loadEvents();
+  window.onload = async () => {
+    await loadEvents();
     checkUserInterests(); 
 
     // Add listeners for all filters
