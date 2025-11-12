@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         <p><strong>Location:</strong> ${event.location}</p>
         <p><strong>Type:</strong> ${event.type}</p>
         <p>${event.description}</p>
-        <div style="margin-top: 15px;">
+        <div class="button-container" style="margin-top: 15px;">
           <button class="fancy-btn remove-btn" data-eventid="${event._id}" data-index="${index}">
             Remove
           </button>
