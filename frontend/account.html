@@ -1,225 +1,293 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Concordia University Campus Event Ticketing - Account</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Concordia University Campus Event Ticketing - Account</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
+  
+  <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
 
-  <div class="navbar">
-      <a href="index.html">HOME</a>
-      <a href="/account">ACCOUNT</a>
-      <a href="/eventspage">EVENTS</a>
-      <a id="dashboard-link" href="#">DASHBOARD</a>
-      <a href="/recommended" id="for-you-link" style="display:none;">FOR YOU</a>
-      <a href="help.html">HELP</a>
-  </div>
-  
-<div class="account-hub">
-
-    <div class="profile-box" id="profile-box-container">
-    <h2>MY PROFILE</h2>
-    <div class="profile-icon">👤</div>
-    <p id="profile-name">Loading...</p>
-    <p id="profile-email">Loading...</p>
-    <p id="profile-role">Loading...</p>
-  </div>
-
-  <div id="my-interests-container" style="display:none;"> <h2>MY INTERESTS</h2>
-    <form id="interests-form">
-      <div class="interests-container" style="text-align: left; max-width: 300px; margin: 10px auto; padding-left: 20px;">
-        <label><input type="checkbox" id="Academic" value="Academic"> Academic</label><br>
-        <label><input type="checkbox" id="Social" value="Social"> Social</label><br>
-        <label><input type="checkbox" id="Workshop" value="Workshop"> Workshop</label><br>
-        <label><input type="checkbox" id="Sports" value="Sports"> Sports</label><br>
-        <label><input type="checkbox" id="Career" value="Career"> Career</label><br>
-        <label><input type="checkbox" id="Arts" value="Arts"> Arts</label><br>
-        <label><input type="checkbox" id="Other" value="Other"> Other</label><br>
-      </div>
-      <button type="submit" id="btn" style="width: auto; padding: 10px 20px;">Update Interests</button>
-    </form>
-    <p id="interest-update-msg" style="color: green;"></p>
+ 
+  <div class="navbar">
+      <a href="index.html">HOME</a>
+      <a href="/account" class="active">ACCOUNT</a>
+      <a href="/eventspage">EVENTS</a>
+      <a id="dashboard-link" href="#">DASHBOARD</a>
+      <a href="recommended.html" id="for-you-link" style="display:none;">FOR YOU</a>
+      <a href="help.html">HELP</a>
   </div>
 
-  <div class="option-box" id="my-events-option" style="display:none;">
-    <a href="MyEvents.html">
-      <img src="calendar.png" alt="events">
-      <p>MY EVENTS</p>
-    </a>
-  </div>
+  
+  <div class="account-page">
+    
+    <div class="profile-card">
+      <div class="profile-avatar">👤</div>
+      <h2 id="profile-name">Loading...</h2>
+      <p id="profile-role">Role</p>
+      <p id="profile-email">Email</p>
+    </div>
 
-  <div class="option-box" id="create-event-option" style="display:none;">
-    <a href="create-event.html">
-      <img src="create-event.png" alt="create event">
-      <p>CREATE EVENT</p>
-    </a>
+    <div class="welcome-box2" id="student-welcome-box" style="display:none;">
+      <h2>Welcome to your Campus Event Ticketing Account!</h2>
+      <p> Claim tickets to your registered events and manage your interests.
+         You can also request organizer access if you’d like to host your own events or be part of an exisiing event.</p>
+    </div>
+
+    <div class="welcome-box2" id="organizer-welcome-box" style="display:none;">
+      <h2>Welcome to your Campus Event Ticketing Account!</h2>
+      <p> Create new events or modify your access privileges using the tools on the left.</p>
+    </div>
   </div>
 
-    <div id="organizer-request-section" style="display:none;">
-    <h3>Request Organizer Access</h3>
-    <label>
-      <input type="radio" name="orgRequestType" value="new" checked>
-      I want to become a new Organizer.
-    </label>
-    <br>
-    <label>
-      <input type="radio" name="orgRequestType" value="existing">
-      I want to organize existing events:
-    </label>
-    <div class="existing-list-wrapper">
-      <select id="existingEventsSelect" multiple size="5" disabled>
-      </select>
-    </div>
-    <br>
-    <button id="submitOrgRequest">Submit Request</button>
-  </div>
+  <footer>
+    <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
+  </footer>
 
-</div> <footer>
-  <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
-</footer>
+  <div id="auth-btn-container"></div>
+  <script src="signout.js"></script>
+  <script src="index_role.js"></script>
 
-<div id="auth-btn-container"></div>
-<script src="signout.js"></script>
-<script src="index_role.js"></script>
-
-
-<script>
-  // --- Helper function to load events for the dropdown ---
-  function loadExistingEvents(role, userEmail) {
-    fetch('/events')
-      .then(res => res.json())
-      .then(events => {
-        const select = document.getElementById('existingEventsSelect');
-        select.innerHTML = "";
-        events.forEach(event => {
-          if (role === "organizer" && event.organizer && event.organizer.includes(userEmail)) {
-            return;
-          }
-          const option = document.createElement('option');
-          option.value = event._id;
-          option.textContent = event.title;
-          select.appendChild(option);
-        });
-      });
-  }
-
-  // --- Main script to run when page loads ---
-  document.addEventListener("DOMContentLoaded", () => {
-    
-    // 1. Fetch user data
-    fetch('/user-profile')
-      .then(res => res.json())
-      .then(user => {
-        
-        // --- PART A: Populate "My Profile" Box ---
-        document.getElementById('profile-name').textContent = user.username || 'Username';
-        document.getElementById('profile-email').textContent = user.email || 'Email';
-        document.getElementById('profile-role').textContent = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Role';
-
-        // --- PART B: Populate "My Interests" Box (if it's visible) ---
-       // normalize interests to an array (handles array, string, null/undefined)
-        const interests = Array.isArray(user.interests)
-          ? user.interests.map(String).map(s => s.trim()).filter(Boolean)
-          : (typeof user.interests === 'string' && user.interests.trim()
-              ? user.interests.split(',').map(s => s.trim()).filter(Boolean)
-              : []);
-
-        // mark checkboxes
-        interests.forEach(interest => {
-          const checkbox = document.getElementById(String(interest));
-          if (checkbox) checkbox.checked = true;
+  <script>
+    //  Load Events for Organizer Form 
+    async function loadExistingEvents(role, userEmail, selectElement) {
+      try {
+        const res = await fetch('/events');
+        const events = await res.json();
+        selectElement.innerHTML = "";
+        events.forEach(event => {
+          if (role === "organizer" && event.organizer && event.organizer.includes(userEmail)) return;
+          const option = document.createElement('option');
+          option.value = event._id;
+          option.textContent = event.title;
+          selectElement.appendChild(option);
         });
+      } catch {
+        console.error("Failed to load events.");
+      }
+    }
 
-        // --- PART C: Show/Hide Widgets based on NEW Role Logic ---
-        const role = user.role;
-        
-        if (role === 'admin') {
-          // Admin: My Profile, Create Event
-          document.getElementById('create-event-option').style.display = 'flex';
-        
-        } else if (role === 'organizer') {
-          // Organizer: My Profile, My Events, Create Event, Request
-          document.getElementById('my-events-option').style.display = 'flex';
-          document.getElementById('create-event-option').style.display = 'flex';
-          document.getElementById('organizer-request-section').style.display = 'block';
-          loadExistingEvents(user.role, user.email);
-        
-        } else if (role === 'student') {
-          // Student: My Profile, My Events, My Interests, Request
-          document.getElementById('my-events-option').style.display = 'flex';
-          document.getElementById('my-interests-container').style.display = 'block';
-          document.getElementById('organizer-request-section').style.display = 'block';
-          loadExistingEvents(user.role, user.email);
+    document.addEventListener("DOMContentLoaded", async () => {
+      let currentUser = null;
+
+      // Fetch User Profile 
+      try {
+        const res = await fetch('/user-profile');
+        currentUser = await res.json();
+        document.getElementById('profile-name').textContent = currentUser.username || 'Username';
+        document.getElementById('profile-email').textContent = currentUser.email || 'Email';
+        document.getElementById('profile-role').textContent =
+          currentUser.role ? currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1) : 'Role';
+      } catch {
+        console.error("Failed to load user profile.");
+      }
+
+      const role = currentUser?.role;
+      const profileCard = document.querySelector(".profile-card");
+      const studentBox = document.getElementById("student-welcome-box");
+      const organizerBox = document.getElementById("organizer-welcome-box");
+
+      // Role-based Buttons 
+      if (role === "student") {
+        studentBox.style.display = "block";
+        document.getElementById("for-you-link").style.display = "inline-block";
+
+        // My Events
+        const myEventsBtn = document.createElement("a");
+        myEventsBtn.href = "MyEvents.html";
+        myEventsBtn.className = "profile-btn";
+        myEventsBtn.textContent = "🎟 My Events";
+        profileCard.appendChild(myEventsBtn);
+
+        // Request Organizer Access
+        const requestBtn = document.createElement("button");
+        requestBtn.id = "request-btn";
+        requestBtn.className = "profile-btn secondary";
+        requestBtn.textContent = "Request Organizer Access";
+        profileCard.appendChild(requestBtn);
+        requestBtn.addEventListener("click", showOrganizerAccessForm);
+
+        // Modify Interests
+        const modifyBtn = document.createElement("button");
+        modifyBtn.id = "modify-interests-btn";
+        modifyBtn.className = "profile-btn secondary";
+        modifyBtn.textContent = "Modify Interests";
+        profileCard.appendChild(modifyBtn);
+        modifyBtn.addEventListener("click", showModifyInterestsForm);
+      }
+
+      if (role === "organizer") {
+        organizerBox.style.display = "block";
+        document.getElementById("for-you-link").style.display = "none";
+
+        // Modify Access
+        const modifyAccessBtn = document.createElement("button");
+        modifyAccessBtn.id = "request-btn";
+        modifyAccessBtn.className = "profile-btn secondary";
+        modifyAccessBtn.textContent = "Modify Access";
+        profileCard.appendChild(modifyAccessBtn);
+        modifyAccessBtn.addEventListener("click", showOrganizerAccessForm);
+
+        // Create Event
+        const createBtn = document.createElement("a");
+        createBtn.href = "create-event.html";
+        createBtn.className = "profile-btn";
+        createBtn.textContent = "Create Event";
+        profileCard.appendChild(createBtn);
+      }
+
+      // Modify Interests Form 
+      function showModifyInterestsForm() {
+        hideAllBoxes();
+        const rightBox = document.createElement("div");
+        rightBox.className = "welcome-box2";
+        rightBox.id = "dynamic-box";
+        rightBox.innerHTML = `
+          <h2>Modify Your Interests</h2>
+          <form id="interests-form">
+            <div class="interests-container" style="text-align:left;max-width:300px;margin:20px auto;">
+              <label><input type="checkbox" value="Academic"> Academic</label><br>
+              <label><input type="checkbox" value="Social"> Social</label><br>
+              <label><input type="checkbox" value="Workshop"> Workshop</label><br>
+              <label><input type="checkbox" value="Sports"> Sports</label><br>
+              <label><input type="checkbox" value="Career"> Career</label><br>
+              <label><input type="checkbox" value="Arts"> Arts</label><br>
+              <label><input type="checkbox" value="Other"> Other</label><br>
+            </div>
+            <button type="submit" class="profile-btn" style="width:auto;padding:8px 20px;">Save Interests</button>
+          </form>
+          <p id="interest-update-msg" style="color:green;margin-top:10px;"></p>
+        `;
+        document.querySelector(".account-page").appendChild(rightBox);
+
+        if (currentUser && currentUser.interests) {
+          currentUser.interests.forEach(interest => {
+            const box = document.querySelector(`input[value="${interest}"]`);
+            if (box) box.checked = true;
+          });
         }
-      })
-      .catch(err => {
-        console.error("Failed to load user profile", err);
-        document.getElementById('profile-name').textContent = 'Error';
-      });
 
-    // 2. Add functionality to "My Interests" form
-    const form = document.getElementById("interests-form");
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const selectedInterests = [];
-      form.querySelectorAll('input[type="checkbox"]:checked').forEach(box => {
-        selectedInterests.push(box.value);
-      });
+        document.getElementById("interests-form").addEventListener("submit", async e => {
+          e.preventDefault();
+          const selected = Array.from(document.querySelectorAll("#interests-form input[type='checkbox']:checked"))
+            .map(i => i.value);
+          try {
+            const res = await fetch("/api/update-interests", {
+              method: "POST",
+              headers: {"Content-Type":"application/json"},
+              body: JSON.stringify({ interests: selected })
+            });
+            const data = await res.json();
+            const msg = document.getElementById("interest-update-msg");
+            if (res.ok) {
+              msg.textContent = "Interests updated successfully!";
+              msg.style.color = "green";
+              currentUser.interests = selected;
+              setTimeout(() => resetRightBox(role), 1500);
+            } else {
+              msg.textContent = data.message || "Failed to update.";
+              msg.style.color = "red";
+            }
+          } catch {
+            msg.textContent = "An error occurred.";
+          }
+        });
+      }
 
-      try {
-        const res = await fetch('/api/update-interests', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ interests: selectedInterests })
-        });
-        const data = await res.json();
-        const msgEl = document.getElementById("interest-update-msg");
-        if (res.ok) {
-          msgEl.textContent = "Interests updated successfully!";
-          msgEl.style.color = "green";
-        } else {
-          msgEl.textContent = data.message || "Failed to update.";
-          msgEl.style.color = "red";
-        }
-      } catch (err) {
-        document.getElementById("interest-update-msg").textContent = "An error occurred.";
-	  }
-    });
+      // Organizer Access Form 
+      function showOrganizerAccessForm() {
+        hideAllBoxes();
+        const rightBox = document.createElement("div");
+        rightBox.className = "welcome-box2";
+        rightBox.id = "dynamic-box";
+        const isOrganizer = (role === "organizer");
 
-    // 3. Add functionality to "Request Organizer" form
-    const radios = document.querySelectorAll('input[name="orgRequestType"]');
-    const eventsSelect = document.getElementById('existingEventsSelect');
-    radios.forEach(radio => {
-      radio.addEventListener('change', () => {
-        eventsSelect.disabled = radio.value !== 'existing';
-     });
-    });
+        rightBox.innerHTML = `
+          <h2>${isOrganizer ? "Modify Organizer Access" : "Request Organizer Access"}</h2>
+          <form id="organizer-form">
+            ${
+              isOrganizer
+                ? `<p>Select the events you want to get access to </p>`
+                : `
+                  <label><input type="radio" name="orgType" value="new" checked> Become a new Organizer.</label><br><br>
+                  <label><input type="radio" name="orgType" value="existing"> Organize existing events:</label><br><br>
+                `
+            }
+            <select id="existingEventsSelect" multiple size="5" style="width:80%;padding:6px;margin-bottom:10px;"></select><br>
+            <button type="submit" class="profile-btn" style="width:auto;padding:8px 20px;">Submit</button>
+          </form>
+          <p id="org-request-msg" style="color:green;margin-top:10px;"></p>
+        `;
+        document.querySelector(".account-page").appendChild(rightBox);
 
-    document.getElementById('submitOrgRequest').addEventListener('click', () => {
-      const type = document.querySelector('input[name="orgRequestType"]:checked').value;
-      const selectedOptions = Array.from(eventsSelect.selectedOptions).map(opt => opt.value);
-      let requests = [];
-      if (type === "new") {
-        requests.push({ type: "new", eventId: null });
-} else if (type === "existing" && selectedOptions.length > 0) {
-        requests = selectedOptions.map(eventId => ({ type: "existing", eventId }));
-      } else {
-        return alert("Select at least one event.");
-      }
-      fetch('/request-organizer', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-BODY: JSON.stringify({ requests })
-      })
-      .then(res => res.json())
-      .then(data => alert(data.message))
-      .catch(() => alert("Request failed"));
-    });
-  });
-</script>
+        const select = document.getElementById("existingEventsSelect");
+        if (currentUser) loadExistingEvents(currentUser.role, currentUser.email, select);
 
+        if (!isOrganizer) {
+          const radios = document.querySelectorAll('input[name="orgType"]');
+          radios.forEach(radio => {
+            radio.addEventListener("change", e => {
+              select.disabled = e.target.value !== "existing";
+            });
+          });
+        }
+
+        document.getElementById("organizer-form").addEventListener("submit", async e => {
+          e.preventDefault();
+          let requests = [];
+          const selected = Array.from(select.selectedOptions).map(opt => opt.value);
+
+          if (isOrganizer) {
+            if (selected.length === 0) {
+              alert("Select at least one event to modify access.");
+              return;
+            }
+            requests = selected.map(eventId => ({ type: "existing", eventId }));
+          } else {
+            const type = document.querySelector('input[name="orgType"]:checked').value;
+            if (type === "new") requests.push({ type: "new", eventId: null });
+            else if (type === "existing" && selected.length > 0)
+              requests = selected.map(eventId => ({ type: "existing", eventId }));
+            else return alert("Select at least one event.");
+          }
+
+          try {
+            const res = await fetch("/request-organizer", {
+              method: "POST",
+              headers: {"Content-Type":"application/json"},
+              body: JSON.stringify({ requests })
+            });
+            const data = await res.json();
+            const msg = document.getElementById("org-request-msg");
+            if (res.ok) {
+              msg.textContent = data.message || "Access updated successfully!";
+              msg.style.color = "green";
+              setTimeout(() => resetRightBox(role), 1500);
+            } else {
+              msg.textContent = data.message || "Failed to submit.";
+              msg.style.color = "red";
+            }
+          } catch {
+            document.getElementById("org-request-msg").textContent = "An error occurred.";
+          }
+        });
+      }
+
+      // 
+      function hideAllBoxes() {
+        document.querySelectorAll(".welcome-box2").forEach(box => box.style.display = "none");
+        const existingDynamic = document.getElementById("dynamic-box");
+        if (existingDynamic) existingDynamic.remove();
+      }
+
+      function resetRightBox(role) {
+        hideAllBoxes();
+        if (role === "student") studentBox.style.display = "block";
+        else if (role === "organizer") organizerBox.style.display = "block";
+      }
+    });
+  </script>
 </body>
 </html>
