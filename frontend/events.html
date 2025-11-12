@@ -12,7 +12,7 @@
  
   <div class="navbar">
     <a href="index.html">HOME</a>
-    <a href="/account">ACCOUNT</a>
+    <a href="/account" id="account-link" class="active">ACCOUNT</a>
     <a href="/eventspage" class="active">EVENTS</a>
     <a id="dashboard-link" href="#">DASHBOARD</a>
     <a href="/recommended" id="for-you-link" style="display:none;">FOR YOU</a>
@@ -352,8 +352,8 @@
   }
 
   // --- Main startup ---
-  window.onload = () => {
-    loadEvents();
+  window.onload = async () => {
+    await loadEvents();
     checkUserInterests(); 
 
     // Add listeners for all filters

@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (searchIcon) searchIcon.addEventListener('click', doSearch);
   if (searchInput) {
-    searchInput.addEventListener('keydown', (e) => {
+    searchInput.addEventListener('keyup', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
         doSearch();
