@@ -3,6 +3,7 @@ body {
       font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
       background-color: #f8f8f8;
       color: #083d8c;
+      padding-bottom: 80px;
     }
 
     
@@ -770,27 +771,27 @@ main h1 {
 }
 
 .quick-actions .create-button {
-   background-color: #3b82f6;
+   background-color: #083d8c;
   color: white;
 }
 .quick-actions .create-button:hover {
- background-color: #1d4ed8;
+ background-color: #083d8c;
 }
 
 .quick-actions .save-button {
-  background-color: #3b82f6;
+  background-color: #083d8c;
   color: white;
 }
 .quick-actions .save-button:hover {
-  background-color: #1d4ed8;
+  background-color: #083d8c;
 }
 
 .quick-actions .qr-button {
-  background-color: #3b82f6;
+  background-color: #083d8c;
   color: white;
 }
 .quick-actions .qr-button:hover {
-  background-color: #1d4ed8;
+  background-color: #083d8c;
 }
 
 /* ===== PAYMENT PAGE STYLES ===== */
@@ -853,7 +854,7 @@ input {
 .btn {
   width: 100%;
   margin-top: 25px;
-  background-color: #007bff;
+  background-color: #083d8c;
   color: white;
   border: none;
   padding: 12px;
@@ -864,7 +865,7 @@ input {
 }
 
 .btn:hover {
-  background-color: #083d8c;
+  background-color: #0056b3;
 }
 
 .back-link {
@@ -1123,36 +1124,6 @@ input {
 }
 
 
-/* --- NEW Account Page Hub Layout --- */
-
-/* This is the main container, replacing .account-layout */
-.account-hub {
-  display: flex;         /* Arrange items horizontally */
-  flex-wrap: wrap;       /* Wrap to next line if no space */
-  justify-content: center; /* Center the boxes on the row */
-  gap: 24px;             /* Space between boxes */
-  padding: 24px;         /* Space around the whole hub */
-  width: 90%;
-  max-width: 1400px;
-  margin: 20px auto 100px auto; /* 100px bottom margin for footer */
-}
-
-/* This is the base style for ALL boxes in the hub */
-.account-hub > div {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.05);
-  padding: 20px 25px;
-  
-  /* --- This is the layout magic --- */
-  flex-grow: 1;           /* Allow boxes to grow */
-  flex-basis: 350px;      /* Each box will start at 350px wide */
-  max-width: 400px;       /* Stop them from getting too wide */
-  min-height: 400px;      /* FORCE all boxes to be the same height */
-  height: fit-content;    /* Allow forms to grow taller if needed */
-}
-
 /* Special styling for the icon boxes */
 .option-box {
   text-align: center;
@@ -1239,4 +1210,94 @@ input {
     width: 100%;               
     max-width: 200px;
   }
+}
+
+/* === Account Page Layout (New Style) === */
+.account-page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 50px;
+  padding: 60px 10%;
+  background-color:#f8f8f8;
+  min-height: 70vh;
+}
+
+/* Left Profile Card */
+.profile-card {
+  background: white;
+  width: 280px;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  padding: 25px 20px;
+  text-align: center;
+}
+
+.profile-avatar {
+  font-size: 80px;
+  margin-bottom: 10px;
+}
+
+.profile-card h2 {
+  font-size: 22px;
+  margin: 10px 0 5px;
+  color: #003366;
+}
+
+.profile-card p {
+  color: #444;
+  font-size: 15px;
+  margin: 3px 0;
+}
+
+.profile-btn {
+  display: block;
+  background-color: #003366;
+  color: white;
+  text-decoration: none;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 0;
+  margin: 10px auto;
+  width: 80%;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.profile-btn:hover {
+  background-color: #084ca0;
+}
+
+.profile-btn.secondary {
+  background-color: white;
+  border: 2px solid #003366;
+  color: #003366;
+}
+
+.profile-btn.secondary:hover {
+  background-color: #003366;
+  color: white;
+}
+
+/* Right Welcome Box */
+.welcome-box2 {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  padding: 40px 50px;
+  flex: 1;
+  max-width: 600px;
+  text-align: center;
+}
+
+.welcome-box2 h2 {
+  color: #003366;
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+.welcome-box2 p {
+  color: #333;
+  font-size: 16px;
 }
