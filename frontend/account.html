@@ -120,12 +120,18 @@
         document.getElementById('profile-role').textContent = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Role';
 
         // --- PART B: Populate "My Interests" Box (if it's visible) ---
-        if (user.interests && user.interests.length > 0) {
-          user.interests.forEach(interest => {
-            const checkbox = document.getElementById(interest);
-            if (checkbox) checkbox.checked = true;
-          });
-        }
+       // normalize interests to an array (handles array, string, null/undefined)
+        const interests = Array.isArray(user.interests)
+          ? user.interests.map(String).map(s => s.trim()).filter(Boolean)
+          : (typeof user.interests === 'string' && user.interests.trim()
+              ? user.interests.split(',').map(s => s.trim()).filter(Boolean)
+              : []);
+
+        // mark checkboxes
+        interests.forEach(interest => {
+          const checkbox = document.getElementById(String(interest));
+          if (checkbox) checkbox.checked = true;
+        });
 
         // --- PART C: Show/Hide Widgets based on NEW Role Logic ---
         const role = user.role;
