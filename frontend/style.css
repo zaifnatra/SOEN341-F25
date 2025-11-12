@@ -373,6 +373,84 @@ body {
       color: white;
     }
 
+/* Improved spacing and sizing for the create-event form inside welcome-box2 */
+.welcome-box2 .form-container {
+  width: 100%;
+  max-width: 720px;        /* limit line length on wide screens */
+  margin: 18px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;               /* consistent vertical spacing between fields */
+  align-items: stretch;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.welcome-box2 .form-group {
+  margin: 0;               /* gap handles spacing */
+}
+
+.welcome-box2 .form-group input,
+.welcome-box2 .form-group textarea,
+.welcome-box2 .form-group select {
+  width: 100%;
+  padding: 14px 12px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e6eefc;
+  font-size: 15px;
+  color: #083d8c;
+  box-sizing: border-box;
+}
+
+.welcome-box2 .form-group textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* Rows */
+.welcome-box2 .form-row {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.welcome-box2 .form-row .form-group {
+  flex: 1 1 220px;
+  min-width: 160px;
+}
+
+/* Price container small layout */
+#wrapper #price-container,
+#wrapper .price-container,
+#wrapper #price-container input {
+  min-width: 140px;
+}
+
+/* Buttons aligned to right with spacing */
+.welcome-box2 .button-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+/* Slightly larger click targets on mobile */
+@media (max-width: 700px) {
+  .welcome-box2 {
+    padding: 24px;
+  }
+  .welcome-box2 .form-container {
+    padding: 0;
+    gap: 12px;
+  }
+  .welcome-box2 .form-row {
+    gap: 12px;
+  }
+}
+ 
+
 /* added css code for help.html page*/
 /* ===== UPDATED HELP BOX (matches WELCOME BOX style) ===== */
 .help-box {
