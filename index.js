@@ -74,13 +74,27 @@ app.get('/signin', (req, res) => {
 
 //function that handles creating an account 
 app.post('/createAccount', async (req, res) => {
-  // --- FIX: Added 'interests' to be read from req.body ---
-  const { email, username, password, interests } = req.body;
-  try {
-    const existing = await usersCollection.findOne({ email });
-    if (existing) {
-      return res.send("Email already exists.");
-    }
+  // --- FIX: Added 'interests' to be read from req.body ---
+  const { email, username, password, interests: rawInterests } = req.body;
+  try {
+    const existing = await usersCollection.findOne({ email });
+    if (existing) {
+      return res.send("Email already exists.");
+    }
+
+    // normalize interests to an array (handles string, single value, comma list, or array)
+    let interests = [];
+    if (rawInterests == null) {
+      interests = [];
+    } else if (Array.isArray(rawInterests)) {
+      interests = rawInterests.map(String).map(s => s.trim()).filter(Boolean);
+    } else {
+      // handle single string or comma-separated values
+      interests = String(rawInterests)
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
 
     // --- FIX: Changed 'interest' to 'interests' ---
     const newUser = { email, username, password, role: "student", interests: interests || [] };
@@ -157,22 +171,29 @@ app.get('/listUsers', async (req, res) => {
 
 //getting the account of the logged in user
 app.get('/user-profile', async (req, res) => {
-  if (req.session && req.session.user) {
-    try {
-      const user = await usersCollection.findOne({ _id: new ObjectId(req.session.user.id) });
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
+  if (req.session && req.session.user) {
+    try {
+      const user = await usersCollection.findOne({ _id: new ObjectId(req.session.user.id) });
+      if (!user) return res.status(404).json({ error: "User not found" });
 
-      // Send back the safe fields
-      const { username, email, role, interests } = user;
-      res.json({ 
-        username, 
-        email, 
-        role, 
-        interests: interests || [],
-        favoritedEvents: user.favoritedEvents || []
-      });
+      // Normalize interests to an array if it's a string (persist fix)
+      let interests = user.interests;
+      if (typeof interests === 'string') {
+        interests = interests.split(',').map(s => s.trim()).filter(Boolean);
+        await usersCollection.updateOne({ _id: user._id }, { $set: { interests } });
+      } else if (!Array.isArray(interests)) {
+        interests = [];
+      }
+
+      // Return normalized profile once
+      const { username, email, role } = user;
+      res.json({
+        username,
+        email,
+        role,
+        interests: interests || [],
+        favoritedEvents: user.favoritedEvents || []
+      });
 
     } catch (error) {
       console.error("Error fetching user profile:", error);
@@ -185,46 +206,32 @@ app.get('/user-profile', async (req, res) => {
 
 // Add this route after your '/user-profile' route
 app.post('/api/update-interests', requireLogin, async (req, res) => {
-    const {
-        interests
-    } = req.body; // Expecting an array of strings
-    const userId = req.session.user.id;
+    // normalize incoming interests to an array
+  const raw = req.body.interests;
+  let interests;
+  if (Array.isArray(raw)) {
+    interests = raw.map(String).map(s => s.trim()).filter(Boolean);
+  } else if (typeof raw === 'string' && raw.trim()) {
+    interests = raw.split(',').map(s => s.trim()).filter(Boolean);
+  } else {
+    interests = [];
+  }
 
-    if (!Array.isArray(interests)) {
-        return res.status(400).json({
-            success: false,
-            message: "Invalid data format."
-        });
-    }
+  try {
+    const result = await usersCollection.updateOne(
+      { _id: new ObjectId(req.session.user.id) },
+      { $set: { interests } }
+    );
+    if (result.matchedCount === 0) return res.status(404).json({ success: false, message: "User not found." });
 
-    try {
-        const result = await usersCollection.updateOne({
-            _id: new ObjectId(userId)
-        }, {
-            $set: {
-                interests: interests
-            }
-        });
+    // keep session in sync so frontend shows updates immediately
+    req.session.user.interests = interests;
 
-        if (result.modifiedCount === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found or interests unchanged."
-            });
-        }
-
-        res.json({
-            success: true,
-            message: "Interests updated!"
-        });
-
-    } catch (error) {
-        console.error("Error updating interests:", error);
-        res.status(500).json({
-            success: false,
-            message: "Server error."
-        });
-    }
+    res.json({ success: true, message: "Interests updated." });
+  } catch (err) {
+    console.error("Error updating interests:", err);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
 });
 
 // Add this route to get details for a single event
