@@ -33,7 +33,7 @@
     <div class="welcome-box2" id="student-welcome-box" style="display:none;">
       <h2>Welcome to your Campus Event Ticketing Account!</h2>
       <p> Claim tickets to your registered events and manage your interests.
-         You can also request organizer access if you’d like to host your own events or be part of an exisiing event.</p>
+         You can also request organizer access if you’d like to host your own events or be part of an existing event.</p>
     </div>
 
     <div class="welcome-box2" id="organizer-welcome-box" style="display:none;">
@@ -52,17 +52,47 @@
 
   <script>
     //  Load Events for Organizer Form 
-    async function loadExistingEvents(role, userEmail, selectElement) {
+    async function loadExistingEvents(role, userEmail, username, selectElement) {
       try {
         const res = await fetch('/events');
         const events = await res.json();
         selectElement.innerHTML = "";
+
+        const addedEventIds = new Set();
         events.forEach(event => {
-          if (role === "organizer" && event.organizer && event.organizer.includes(userEmail)) return;
+
+          if (addedEventIds.has(event._id)) {
+            return;
+          }
+          // For issue #171 : Organizers modification access
+
+          if (role == "organizer") {
+            if (event.organizer && Array.isArray(event.organizer) && event.organizer.length>0) {
+              if (event.organizer[0] === username) {
+                return;
+              }
+            }
+            if (event.organizer && (event.organizer.includes(username) || event.organizer.includes(userEmail))) {
+              return;
+            }
+
+            const option = document.createElement('option');
+            option.value = event._id;
+            option.textContent = event.title;
+            selectElement.appendChild(option);
+            addedEventIds.add(event._id);
+            return;
+          }
+
+          // For students: show events they're not already organizing
+          if (event.organizer && event.organizer.includes(userEmail))
+          return;
+
           const option = document.createElement('option');
           option.value = event._id;
           option.textContent = event.title;
           selectElement.appendChild(option);
+          addedEventIds.add(event._id);
         });
       } catch {
         console.error("Failed to load events.");
@@ -223,7 +253,7 @@
         document.querySelector(".account-page").appendChild(rightBox);
 
         const select = document.getElementById("existingEventsSelect");
-        if (currentUser) loadExistingEvents(currentUser.role, currentUser.email, select);
+        if (currentUser) loadExistingEvents(currentUser.role, currentUser.email, currentUser.username, select);
 
         if (!isOrganizer) {
           const radios = document.querySelectorAll('input[name="orgType"]');
