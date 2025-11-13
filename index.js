@@ -766,11 +766,12 @@ app.get("/export-event-csv/:eventId", requireLogin, async (req, res) => {
     const event = await eventsCollection.findOne({ _id: new ObjectId(eventId) });
     if (!event) return res.status(404).send("Event not found");
 
-    // Only allow organizers of the event to export
-    const organizerEmail = req.session.user.email;
-    const isOrganizer = Array.isArray(event.organizer)
-      ? event.organizer.includes(organizerEmail)
-       : event.organizer === organizerEmail;
+    const user = req.session.user;
+    const organizerIdentifiers = [user.email, user.username];
+
+    const isOrganizer = Array.isArray(event.organizer)
+      ? event.organizer.some((org) => organizerIdentifiers.includes(org))
+      : organizerIdentifiers.includes(event.organizer);
 
     if (!isOrganizer) return res.status(403).send("Unauthorized");
 
