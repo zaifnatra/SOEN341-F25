@@ -227,83 +227,150 @@
       }
 
       // Organizer Access Form 
-      function showOrganizerAccessForm() {
-        hideAllBoxes();
-        const rightBox = document.createElement("div");
-        rightBox.className = "welcome-box2";
-        rightBox.id = "dynamic-box";
-        const isOrganizer = (role === "organizer");
+// Replace your existing showOrganizerAccessForm() with this:
+function showOrganizerAccessForm() {
+  hideAllBoxes();
+  const rightBox = document.createElement("div");
+  rightBox.className = "welcome-box2";
+  rightBox.id = "dynamic-box";
+  const isOrganizer = (role === "organizer");
 
-        rightBox.innerHTML = `
-          <h2>${isOrganizer ? "Modify Organizer Access" : "Request Organizer Access"}</h2>
-          <form id="organizer-form">
-            ${
-              isOrganizer
-                ? `<p>Select the events you want to get access to </p>`
-                : `
-                  <label><input type="radio" name="orgType" value="new" checked> Become a new Organizer.</label><br><br>
-                  <label><input type="radio" name="orgType" value="existing"> Organize existing events:</label><br><br>
-                `
-            }
-            <select id="existingEventsSelect" multiple size="5" style="width:80%;padding:6px;margin-bottom:10px;"></select><br>
-            <button type="submit" class="profile-btn" style="width:auto;padding:8px 20px;">Submit</button>
-          </form>
-          <p id="org-request-msg" style="color:green;margin-top:10px;"></p>
-        `;
-        document.querySelector(".account-page").appendChild(rightBox);
-
-        const select = document.getElementById("existingEventsSelect");
-        if (currentUser) loadExistingEvents(currentUser.role, currentUser.email, currentUser.username, select);
-
-        if (!isOrganizer) {
-          const radios = document.querySelectorAll('input[name="orgType"]');
-          radios.forEach(radio => {
-            radio.addEventListener("change", e => {
-              select.disabled = e.target.value !== "existing";
-            });
-          });
-        }
-
-        document.getElementById("organizer-form").addEventListener("submit", async e => {
-          e.preventDefault();
-          let requests = [];
-          const selected = Array.from(select.selectedOptions).map(opt => opt.value);
-
-          if (isOrganizer) {
-            if (selected.length === 0) {
-              alert("Select at least one event to modify access.");
-              return;
-            }
-            requests = selected.map(eventId => ({ type: "existing", eventId }));
-          } else {
-            const type = document.querySelector('input[name="orgType"]:checked').value;
-            if (type === "new") requests.push({ type: "new", eventId: null });
-            else if (type === "existing" && selected.length > 0)
-              requests = selected.map(eventId => ({ type: "existing", eventId }));
-            else return alert("Select at least one event.");
-          }
-
-          try {
-            const res = await fetch("/request-organizer", {
-              method: "POST",
-              headers: {"Content-Type":"application/json"},
-              body: JSON.stringify({ requests })
-            });
-            const data = await res.json();
-            const msg = document.getElementById("org-request-msg");
-            if (res.ok) {
-              msg.textContent = data.message || "Access updated successfully!";
-              msg.style.color = "green";
-              setTimeout(() => resetRightBox(role), 1500);
-            } else {
-              msg.textContent = data.message || "Failed to submit.";
-              msg.style.color = "red";
-            }
-          } catch {
-            document.getElementById("org-request-msg").textContent = "An error occurred.";
-          }
-        });
+  rightBox.innerHTML = `
+    <h2>${isOrganizer ? "Modify Organizer Access" : "Request Organizer Access"}</h2>
+    <form id="organizer-form">
+      ${
+        isOrganizer
+          ? `<p>Select the events you want to get access to </p>`
+          : `
+            <label><input type="radio" name="orgType" value="new" checked> Become a new Organizer.</label><br><br>
+            <label><input type="radio" name="orgType" value="existing"> Organize existing events:</label><br><br>
+          `
       }
+      <select id="existingEventsSelect" multiple size="5" style="width:80%;padding:6px;margin-bottom:10px;"></select><br>
+      <button type="submit" class="profile-btn" style="width:auto;padding:8px 20px;">Submit</button>
+    </form>
+    <p id="org-request-msg" style="color:green;margin-top:10px;"></p>
+  `;
+
+  document.querySelector(".account-page").appendChild(rightBox);
+
+  const select = document.getElementById("existingEventsSelect");
+  if (currentUser) loadExistingEvents(currentUser.role, currentUser.email, currentUser.username, select);
+
+  // Helper to fully disable/enable the select reliably
+  function setSelectEnabled(enabled) {
+    // Real disabled attribute (prevents normal interaction)
+    select.disabled = !enabled;
+
+    // ARIA & tabindex: make it un-focusable for keyboard users when disabled
+    if (!enabled) {
+      select.setAttribute("aria-disabled", "true");
+      select.setAttribute("tabindex", "-1");
+    } else {
+      select.removeAttribute("aria-disabled");
+      select.removeAttribute("tabindex");
+    }
+
+    // Visual cue
+    select.style.opacity = enabled ? "1" : "0.6";
+    select.style.cursor = enabled ? "auto" : "not-allowed";
+
+    // Remove any selections when disabling
+    if (!enabled) {
+      Array.from(select.options).forEach(opt => opt.selected = false);
+    }
+  }
+
+  // Prevent mouse / keyboard events that might change selection even if something goes wrong
+  function blockInteractionIfDisabled(e) {
+    if (select.disabled) {
+      // For pointer events like mousedown/click, prevent default so focus/select doesn't happen
+      if (e.type === "mousedown" || e.type === "click") {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      // For keyboard events (space/arrow) prevent changing selection
+      if (e.type === "keydown") {
+        const keysToBlock = [" ", "Spacebar", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End", "PageUp", "PageDown"];
+        if (keysToBlock.includes(e.key)) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }
+    }
+  }
+
+  // Only run radio logic for non-organizers
+  if (!isOrganizer) {
+    const radios = document.querySelectorAll('input[name="orgType"]');
+
+    // Initially, "new" is checked — disable the select
+    setSelectEnabled(false);
+
+    // Attach radio change handlers
+    radios.forEach(radio => {
+      radio.addEventListener("change", e => {
+        const enable = e.target.value === "existing";
+        setSelectEnabled(enable);
+      });
+    });
+
+    // Also guard the select itself from unexpected interactions
+    select.addEventListener("mousedown", blockInteractionIfDisabled);
+    select.addEventListener("click", blockInteractionIfDisabled);
+    select.addEventListener("keydown", blockInteractionIfDisabled);
+    // In case focus happens via scripting, blur it when disabled
+    select.addEventListener("focus", () => { if (select.disabled) select.blur(); });
+  }
+
+  // Always validate again on submit (defensive)
+  document.getElementById("organizer-form").addEventListener("submit", async e => {
+    e.preventDefault();
+
+    // Recompute selected after final state
+    const selected = Array.from(select.selectedOptions).map(opt => opt.value);
+    let requests = [];
+
+    if (isOrganizer) {
+      if (selected.length === 0) {
+        alert("Select at least one event to modify access.");
+        return;
+      }
+      requests = selected.map(eventId => ({ type: "existing", eventId }));
+    } else {
+      const type = document.querySelector('input[name="orgType"]:checked').value;
+      if (type === "new") {
+        requests.push({ type: "new", eventId: null });
+      } else if (type === "existing") {
+        if (selected.length === 0) return alert("Select at least one event.");
+        requests = selected.map(eventId => ({ type: "existing", eventId }));
+      } else {
+        return alert("Select organizer type.");
+      }
+    }
+
+    // send request
+    try {
+      const res = await fetch("/request-organizer", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ requests })
+      });
+      const data = await res.json();
+      const msg = document.getElementById("org-request-msg");
+      if (res.ok) {
+        msg.textContent = data.message || "Access updated successfully!";
+        msg.style.color = "green";
+        setTimeout(() => resetRightBox(role), 1500);
+      } else {
+        msg.textContent = data.message || "Failed to submit.";
+        msg.style.color = "red";
+      }
+    } catch {
+      document.getElementById("org-request-msg").textContent = "An error occurred.";
+    }
+  });
+}
 
       // 
       function hideAllBoxes() {
