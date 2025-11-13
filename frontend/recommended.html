@@ -60,6 +60,19 @@
       color: #555;
       font-size: 14px;
     }
+    
+    .signup-btn {
+      display: inline-block;
+      padding: 8px 12px;
+      font-size: 14px;
+      border-radius: 8px;
+      background: #083d8c;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    .signup-btn[disabled] { opacity: 0.6; cursor: default; }
+    .signup-btn.signed-up { background: #4caf50; }
   </style>
 </head>
 <body>
@@ -103,99 +116,170 @@
     </footer>
 
 <script>
-    // 1. This function is reusable for both sections
-    function renderEvents(events, containerId, emptyMessage) {
-      const container = document.getElementById(containerId);
-      container.innerHTML = ""; 
+    // 1. This function is reusable for both sections
+    function renderEvents(events, containerId, emptyMessage) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = ""; 
 
-      if (!events || events.length === 0) {
-        container.innerHTML = `<p>${emptyMessage}</p>`;
-        return;
-      }
+      if (!events || events.length === 0) {
+        container.innerHTML = `<p>${emptyMessage}</p>`;
+        return;
+      }
 
-      events.forEach(ev => {
-        const card = document.createElement('div');
-        card.classList.add('event-card');
-        
-        // --- 1. NEW LOGIC FOR DATE ---
-        let dateString = ev.date || "No date";
-        if (ev.endDate && ev.endDate !== ev.date) {
-          dateString = `${ev.date} to ${ev.endDate}`;
-        }
-        
-        // --- 2. NEW LOGIC FOR PRICE ---
-        let priceString = "Free";
-        if (ev.paymentStatus === "Paid" && ev.price) {
-          priceString = `$${Number(ev.price).toFixed(2)}`;
-        } else if (ev.paymentStatus === "Paid") {
-          priceString = "Paid (Price TBD)";
-        }
-        
-        // --- 3. NEW LOGIC FOR TIME ---
-        let timeString = ev.time || "N/A";
-        if (timeString.toLowerCase() === "all day") {
-          timeString = "All Day";
-        }
+      events.forEach(ev => {
+        const card = document.createElement('div');
+        card.classList.add('event-card');
+        
+        let dateString = ev.date || "No date";
+        if (ev.endDate && ev.endDate !== ev.date) {
+          dateString = `${ev.date} to ${ev.endDate}`;
+        }
+        
+        let priceString = "Free";
+        if (ev.paymentStatus === "Paid" && ev.price) {
+          priceString = `$${Number(ev.price).toFixed(2)}`;
+        } else if (ev.paymentStatus === "Paid") {
+          priceString = "Paid (Price TBD)";
+        }
+        
+        let timeString = ev.time || "N/A";
+        if (timeString.toLowerCase && timeString.toLowerCase() === "all day") {
+          timeString = "All Day";
+        }
 
-        // --- 4. UPDATED HTML ---
-        card.innerHTML = `
-          <h3>${ev.title || 'Untitled Event'}</h3>
-         <p>${ev.location || 'No location'} • ${dateString}</p>
-          <p><strong>Time:</strong> ${timeString}</p>
-          <p><strong>Category:</strong> ${ev.type || 'N/A'}</p>
-          <p><strong>Price:</strong> ${priceString}</p>
-        `;
-        container.appendChild(card);
-      });
-    }
+        // event identifier
+        const eventId = ev._id ? ev._id : ev.id;
 
-    // 2. This function loads all data for the page
-    async function loadPageData() {
-      const titleEl = document.getElementById('recommend-title');
-      const promptEl = document.getElementById('recommend-prompt-container');
-      
-      const favContainer = document.getElementById('favorites-container');
-      const recContainer = document.getElementById('recommend-container');
+        card.innerHTML = `
+          <h3>${ev.title || 'Untitled Event'}</h3>
+          <p>${ev.location || 'No location'} • ${dateString}</p>
+          <p><strong>Time:</strong> ${timeString}</p>
+          <p><strong>Category:</strong> ${ev.type || 'N/A'}</p>
+          <p><strong>Price:</strong> ${priceString}</p>
+          <div class="event-actions" style="margin-top:12px;">
+            <button class="signup-btn" data-event-id="${eventId}">Sign Up</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
 
-      try {
-        const [user, recommendations, favorites] = await Promise.all([
-          fetch("/user-profile").then(res => res.json()),
-          fetch('/api/recommendations').then(res => res.json()),
-          fetch('/api/my-favorites').then(res => res.json())
-        ]);
+      // attach signup handlers
+      container.querySelectorAll('.signup-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const eventId = btn.getAttribute('data-event-id');
 
-        if (!user.role || user.role !== "student") {
-          alert("Access denied. Only students can view this page.");
-          window.location.href = "signin.html";
-          return;
-        }
-        
-        // Render both sections
-        renderEvents(favorites, 'favorites-container', 'You have no favorited events yet.');
-        renderEvents(recommendations, 'recommend-container', 'No new recommendations found for you right now.'); 
+          // session/role check
+          try {
+            const ss = await fetch('/session-status', { credentials: 'same-origin' }).then(r => r.json());
+            if (!ss.loggedIn) {
+              const redirect = `/recommended`;
+              window.location.href = `/signin.html?redirect=${encodeURIComponent(redirect)}`;
+              return;
+            }
+            if (ss.role && ss.role !== 'student') {
+              alert('Only students can sign up for events.');
+              return;
+            }
+          } catch (err) {
+            console.error('Session check failed', err);
+            window.location.href = '/signin.html';
+            return;
+          }
 
-        // Update title and prompt
-        const hasInterests = user.interests && user.interests.length > 0 && !user.interests.includes('Other');
-        
-        if (hasInterests) {
-          titleEl.textContent = "Based on Your Interests";
-        } else {
-         titleEl.textContent = "Popular Upcoming Events";
-          promptEl.innerHTML = `
-            <p style="text-align: center; font-size: 16px; margin-bottom: 20px;">
-              Want better recommendations? 
-              <a href="/account" style="color: #083d8c; font-weight: bold;">Set your interests now!</a>
-            </p>
-          `;
-        }
+          btn.disabled = true;
+          const prevText = btn.textContent;
+          btn.textContent = 'Signing up...';
 
-      } catch (err) {
-        console.error("Access check or data load failed:", err);
-       favContainer.innerHTML = '<p>Error loading favorites. Please refresh.</p>';
-        recContainer.innerHTML = '<p>Error loading recommendations. Please refresh.</p>';
-      }
-    }
+          try {
+            const res = await fetch('/signup-event', {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ eventId })
+            });
 
-    // 3. Run the main function
-    loadPageData();
-  </script>
+            let data = null;
+            try { data = await res.json(); } catch (jsonErr) { data = null; }
+
+            if (res.ok && data && data.success) {
+              alert(data.message || 'Signed up successfully.');
+              // update local event remaining count if present in closure
+              if (typeof applyFilters === 'function') {
+                // trigger a refresh of displayed events
+                applyFilters();
+              }
+              btn.textContent = 'Signed Up';
+              btn.classList.add('signed-up');
+              btn.disabled = true;
+            } else {
+              let msg = 'Sign up failed.';
+              if (data && data.message) msg = data.message;
+              else {
+                const text = await res.text().catch(() => '');
+                if (text) msg = text;
+              }
+              alert(msg);
+              btn.textContent = prevText;
+              btn.disabled = false;
+            }
+          } catch (err) {
+            console.error('Signup error', err);
+            alert('Network error during sign up.');
+            btn.textContent = prevText;
+            btn.disabled = false;
+          }
+        });
+      });
+    }
+
+    async function loadPageData() {
+      const titleEl = document.getElementById('recommend-title');
+      const promptEl = document.getElementById('recommend-prompt-container');
+      
+      const favContainer = document.getElementById('favorites-container');
+      const recContainer = document.getElementById('recommend-container');
+
+      try {
+        const [userRes, recRes, favRes] = await Promise.all([
+          fetch("/user-profile", { credentials: 'same-origin' }),
+          fetch('/api/recommendations', { credentials: 'same-origin' }),
+          fetch('/api/my-favorites', { credentials: 'same-origin' })
+        ]);
+        const user = await userRes.json().catch(()=>({}));
+        const recommendations = await recRes.json().catch(()=>[]);
+        const favorites = await favRes.json().catch(()=>[]);
+
+        if (!user.role || user.role !== "student") {
+          alert("Access denied. Only students can view this page.");
+          window.location.href = "signin.html";
+          return;
+        }
+        
+        renderEvents(favorites, 'favorites-container', 'You have no favorited events yet.');
+        renderEvents(recommendations, 'recommend-container', 'No new recommendations found for you right now.'); 
+
+        const hasInterests = user.interests && user.interests.length > 0 && !user.interests.includes('Other');
+        
+        if (hasInterests) {
+          titleEl.textContent = "Based on Your Interests";
+        } else {
+          titleEl.textContent = "Popular Upcoming Events";
+          promptEl.innerHTML = `
+            <p style="text-align: center; font-size: 16px; margin-bottom: 20px;">
+              Want better recommendations? 
+              <a href="/account" style="color: #083d8c; font-weight: bold;">Set your interests now!</a>
+            </p>
+          `;
+        }
+
+      } catch (err) {
+        console.error("Access check or data load failed:", err);
+        favContainer.innerHTML = '<p>Error loading favorites. Please refresh.</p>';
+        recContainer.innerHTML = '<p>Error loading recommendations. Please refresh.</p>';
+      }
+    }
+
+    loadPageData();
+  </script>
+</body>
+</html>
