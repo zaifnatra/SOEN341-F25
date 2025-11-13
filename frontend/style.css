@@ -342,7 +342,7 @@ body {
 
     .create-btn {
       flex: 1;
-      background: #28a745;
+      background: #083d8c;
       color: white;
       border: none;
       padding: 12px;
@@ -353,7 +353,8 @@ body {
     }
 
     .create-btn:hover {
-      background: #218838;
+      background: #0056b3;               
+      border-color: #0056b3;
     }
 
     .save-btn {
