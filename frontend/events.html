@@ -7,6 +7,10 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!--This file is about handling displaying events in the 'Events' page found in the navigation bar. It handles the logic 
+  of allowing students to sign up for events, and sends that action to the database and registering the student with that event. 
+  It also ensures that students can't sign up for the same event twice. 
+  -->
   <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
 
  
@@ -58,9 +62,9 @@
     <p>© 2025 Concordia University Campus Event Ticketing | All Rights Reserved</p>
   </footer>
 
-  <script src="index_role.js"></script>
-  <script src="createevent.js"></script>
-  <script src="signout.js"></script>
+  <script src="/scripts/index_role.js"></script>
+  <script src="/scripts/createevent.js"></script>
+  <script src="/scripts/signout.js"></script>
 
  <script>
   // Global variables to store our data
@@ -68,9 +72,7 @@
   let userRole = null;
   let userFavorites = [];
 
-  /**
-   * Populates all filter dropdowns
-   */
+  //Populates all filter dropdowns
   function populateFilters(events) {
     const categorySelect = document.getElementById("filter-category");
     const orgSelect = document.getElementById("filter-organizer");
@@ -118,9 +120,7 @@
     });
   }
 
-  /**
-   * Renders the event cards with all new logic
-   */
+  //Renders the event cards with all new logic
   function renderEvents(eventsToRender, role, favorites) {
     const eventsList = document.getElementById("events-list");
     eventsList.innerHTML = ""; 
@@ -230,7 +230,6 @@
               });
               const data = await res.json();
            
-              // --- FIX: Moved alert logic inside the if/else ---
               if (res.ok && data.success) {
                 alert(data.message); // Show success message
                 ev.remainingTickets = (ev.remainingTickets ?? ev.capacity) - 1;
@@ -277,9 +276,7 @@
     });
   }
 
-  /**
-   * Fetches all data, stores it, and does the *first* render
-   */
+  // Fetches all data, stores it, and does first render
   async function loadEvents() {
     const eventsList = document.getElementById("events-list");
     eventsList.innerHTML = "<p>Loading events...</p>";
@@ -305,9 +302,7 @@
     }
   }
 
-  /**
-   * Applies all active filters
-   */
+  // Applies all active filters
   function applyFilters() {
     const nameValue = document.getElementById("filter-name").value.toLowerCase();
     const categoryValue = document.getElementById("filter-category").value;
@@ -339,9 +334,7 @@
     renderEvents(filteredEvents, userRole, userFavorites);
   }
 
-  /**
-   * Clears all filter inputs
-   */
+  // Clears all filter inputs
   function clearFilters() {
     document.getElementById("filter-name").value = "";
     document.getElementById("filter-category").value = "";

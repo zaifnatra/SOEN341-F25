@@ -83,8 +83,6 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 // --- END OF UPDATED BLOCK ---
 
-
-// This is your existing code, it is correct
 document.getElementById("paymentForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -160,14 +158,13 @@ document.getElementById("paymentForm").addEventListener("submit", async (e) => {
   }
 });
 
-// This is your existing code, it is correct
 document.getElementById("cardNumber").addEventListener("input", (e) => {
   let value = e.target.value.replace(/\D/g, "").substring(0, 16);
   // Format as XXXX XXXX XXXX XXXX
   e.target.value = value.replace(/(.{4})/g, "$1 ").trim();
 });
 
-// NEW: Add formatter for Expiry Date
+// Add formatter for Expiry Date
 document.getElementById("expiry").addEventListener("input", (e) => {
   let value = e.target.value.replace(/\D/g, "").substring(0, 4);
   if (value.length > 2) {

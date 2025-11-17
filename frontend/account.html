@@ -3,10 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <title>Concordia University Campus Event Ticketing - Account</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
+  <!-- This file is about the 'Account' page found in the navigation bar. It contains general information about Student
+   and Organizer accounts as well as access to some functionality. For example for Students they can request Organizer Access,
+  access the events they signed up to and mofidy their interests for the event recommendation feature. 
+  For Organizers they can request access to events they don't own, and create an event. The logic of modifying the UI and
+  displaying functionalities based on the detected role of the signed in account is found in the script below. 
+  
+  -->
   
   <div class="title-bar">CONCORDIA UNIVERSITY: CAMPUS EVENT TICKETING</div>
 
@@ -47,11 +54,11 @@
   </footer>
 
   <div id="auth-btn-container"></div>
-  <script src="signout.js"></script>
-  <script src="index_role.js"></script>
+  <script src="/scripts/signout.js"></script>
+  <script src="/scripts/index_role.js"></script>
 
   <script>
-    //  Load Events for Organizer Form 
+    //  Function that loads events for Organizer Form 
     async function loadExistingEvents(role, userEmail, username, selectElement) {
       try {
         const res = await fetch('/events');
@@ -226,8 +233,7 @@
         });
       }
 
-      // Organizer Access Form 
-// Replace your existing showOrganizerAccessForm() with this:
+// Organizer Access Form 
 function showOrganizerAccessForm() {
   hideAllBoxes();
   const rightBox = document.createElement("div");
