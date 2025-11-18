@@ -160,13 +160,6 @@ async function loadAnalytics() {
       return 0; // cannot attribute total scannedTickets to windows without timestamps
     }
 
-    // totals: prefer scans length if present, else fallback to scannedTickets
-    /*const totalEvents = events.length;
-    const totalTicketsIssued = events.reduce((sum, e) => {
-      if (Array.isArray(e.scans)) return sum + e.scans.length;
-      return sum + (e.scannedTickets || 0);
-    }, 0);*/
-
     // totals: use scannedTickets as a priority, but tolerate scans[]
     const totalEvents = events.length;
     const totalTicketsIssued = events.reduce((sum, e) => {
@@ -223,7 +216,6 @@ async function loadAnalytics() {
     }
   } catch (err) {
     console.error("Error loading analytics:", err);
-    // ...existing error handling...
   }
 }
 

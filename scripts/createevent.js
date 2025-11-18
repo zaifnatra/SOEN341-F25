@@ -30,16 +30,16 @@ if (createBtn) {
     const title = document.getElementById("event-title").value.trim();
     const description = document.getElementById("event-description").value.trim();
     const date = document.getElementById("event-date").value;
-    const endDate = document.getElementById("event-end-date").value; // NEW
+    const endDate = document.getElementById("event-end-date").value; 
     const location = document.getElementById("event-location").value.trim();
     const capacity = document.getElementById("event-capacity").value;
     const type = document.getElementById("event-category").value;
     const paymentStatus = document.getElementById("event-payment-status").value;
-    const price = document.getElementById("event-price").value; // NEW
+    const price = document.getElementById("event-price").value; 
 
     // Handle "All Day" checkbox
     const isAllDay = document.getElementById("event-all-day").checked;
-    const time = isAllDay ? "All Day" : document.getElementById("event-time").value; // NEW
+    const time = isAllDay ? "All Day" : document.getElementById("event-time").value; 
 
     // --- 2. Updated Validation ---
     // Original validation
@@ -48,13 +48,13 @@ if (createBtn) {
       return;
     }
     
-    // NEW: Block invalid price for paid events
+    // Block invalid price for paid events
     if (paymentStatus === "Paid" && (!price || parseFloat(price) <= 0)) {
       alert("⚠️ Please enter a valid price (greater than 0) for a paid event.");
       return;
     }
     
-    // NEW: Block invalid end date
+    // Block invalid end date
     if (endDate && endDate < date) {
       alert("⚠️ End date cannot be before the start date.");
       return;
@@ -85,12 +85,12 @@ if (createBtn) {
           description,
           date,
           time, // Will be "All Day" or a time string
-          endDate, // NEW
+          endDate,
           location,
           capacity,
           type,
           paymentStatus,
-          price // NEW
+          price 
         }),
       });
 

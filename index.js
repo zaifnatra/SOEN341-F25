@@ -30,6 +30,8 @@ app.use(session({
 
 // Serve static frontend files
 app.use(express.static(path.join(__dirname, 'frontend')));
+app.use('/images', express.static(path.join(__dirname, 'images')));
+app.use('/scripts', express.static(path.join(__dirname, 'scripts')));
 
 // MongoDB connection
 const uri = process.env.MONGO_URI;
@@ -553,12 +555,12 @@ app.post('/createEvent', async (req, res) => {
       description,
       date, // This is the Start Date
       time, // This can be "All Day"
-      endDate: endDate || null, // NEW
+      endDate: endDate || null, 
       location,
       capacity: numCapacity,
       type: type,
       paymentStatus: paymentStatus,
-      price: price || null, // NEW
+      price: price || null, 
       qrCodes,
       scannedTickets: 0,
       attendanceRate: 0,
@@ -946,12 +948,12 @@ app.get('/api/my-favorites', requireLogin, async (req, res) => {
   try {
     const user = await usersCollection.findOne({ _id: new ObjectId(req.session.user.id) });
     
-    // --- THIS IS THE FIX ---
+   
     if (!user) {
       // This stops the crash if the user's session is invalid
       return res.json([]); // Just return an empty list
     }
-    // --- END OF FIX ---
+
 
     const favoritedEventIds = (user.favoritedEvents || []).map(id => new ObjectId(id));
 
@@ -1068,7 +1070,7 @@ app.get('/generate-ticket/:eventId', async (req, res) => {
     doc.text(`Location: ${event.location}`);
     doc.text(`Registered To: ${userEmail}`);
     doc.text(`QR Code ID: ${assignedQr.code}`);
-    doc.moveDown(1.5); // FIX: Was "Readability.moveDown"
+    doc.moveDown(1.5); 
 
     // Embed assigned QR code image
     const qrImage = qrCodeDataUrl.replace(/^data:image\/png;base64,/, "");
@@ -1082,7 +1084,7 @@ app.get('/generate-ticket/:eventId', async (req, res) => {
   } catch (err) {
     console.error('Error generating ticket:', err);
     res.status(500).send('Server error generating ticket.');
-  } // FIX: Was "After }"
+  }
 });
 
 
